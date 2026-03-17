@@ -11,7 +11,7 @@ class PasswordGeneratorApp(ctk.CTk):
         super().__init__()
         
         self.title("PassWorlds - Генератор паролей")
-        self.geometry("500x600")
+        self.geometry("500x650")
         self.resizable(False, False)
         
         self.password = ""
