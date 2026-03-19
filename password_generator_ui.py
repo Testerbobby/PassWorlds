@@ -581,7 +581,9 @@ class SettingsWindow(ctk.CTkToplevel):
             "Салатовый": "lime",
             "Фиолетовый": "purple"
         }
-        self.settings["color_theme"] = color_map.get(color_name, "blue")
+        color_key = color_map.get(color_name, "blue")
+        self.settings["color_theme"] = color_key
+        ctk.set_default_color_theme(color_key)
     
     def reset_settings(self):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
@@ -590,6 +592,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
     
     def cancel_and_close(self):
+        ctk.set_default_color_theme(self.saved_settings["color_theme"])
         self.destroy()
     
     def apply_and_close(self):
@@ -599,6 +602,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.settings["auto_check_hibp"] = self.hibp_var.get()
         
         ctk.set_appearance_mode(self.settings["theme"])
+        ctk.set_default_color_theme(self.settings["color_theme"])
         self.save_callback()
         self.destroy()
 
