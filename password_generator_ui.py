@@ -545,6 +545,7 @@ class SettingsWindow(ctk.CTkToplevel):
             text="Автопроверка утечек (Have I Been Pwned)",
             variable=self.hibp_var
         )
+        self.color_buttons.append(hibp_cb)
         hibp_cb.pack(pady=2, anchor="w", padx=10)
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -600,6 +601,8 @@ class SettingsWindow(ctk.CTkToplevel):
                 widget_type = type(widget).__name__
                 if widget_type == "CTkOptionMenu":
                     widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
+                elif widget_type == "CTkCheckBox":
+                    widget.configure(fg_color=colors[0], hover_color=colors[1])
             except:
                 pass
         
