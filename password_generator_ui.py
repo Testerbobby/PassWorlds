@@ -584,8 +584,10 @@ class SettingsWindow(ctk.CTkToplevel):
             hover_color="#1e8449"
         )
         apply_btn.pack(side="left", padx=5, fill="x", expand=True)
+        
+        self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
     
-    def change_color(self, color_name):
+    def change_color(self, color_name, apply_to_parent=True):
         color_map = {
             "Синий": ("#3b8ed0", "#1f6aa5"),
             "Голубой": ("#00a8cc", "#007a99"),
@@ -607,13 +609,14 @@ class SettingsWindow(ctk.CTkToplevel):
             except:
                 pass
         
-        self.parent.apply_color_theme(color_name)
+        if apply_to_parent:
+            self.parent.apply_color_theme(color_name)
     
     def reset_settings(self):
         self.theme_var.set(self.parent.settings["theme"])
         self.color_var.set(self.parent.settings["color_theme"])
         self.hibp_var.set(self.parent.settings["auto_check_hibp"])
-        self.change_color(self.parent.settings["color_theme"])
+        self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
     
     def cancel_and_close(self):
         self.destroy()
@@ -626,7 +629,6 @@ class SettingsWindow(ctk.CTkToplevel):
         self.parent.settings["auto_check_hibp"] = self.hibp_var.get()
         
         ctk.set_appearance_mode(self.parent.settings["theme"])
-        self.change_color(color_name)
         self.parent.apply_color_theme(color_name)
         self.parent.save_settings()
         self.destroy()
