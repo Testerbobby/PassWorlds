@@ -9,8 +9,10 @@ import webbrowser
 import keyboard
 from datetime import datetime
 
-CONFIG_FILE = "passworlds_settings.json"
-HISTORY_FILE = "passworlds_history.json"
+APP_DIR = os.path.join(os.path.expanduser("~"), ".passworlds")
+os.makedirs(APP_DIR, exist_ok=True)
+CONFIG_FILE = os.path.join(APP_DIR, "settings.json")
+HISTORY_FILE = os.path.join(APP_DIR, "history.json")
 
 class PasswordGeneratorApp(ctk.CTk):
     def __init__(self):

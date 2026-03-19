@@ -8,7 +8,9 @@ import hashlib
 import sys
 import os
 
-CONFIG_FILE = "cli_settings.json"
+APP_DIR = os.path.join(os.path.expanduser("~"), ".passworlds")
+os.makedirs(APP_DIR, exist_ok=True)
+CONFIG_FILE = os.path.join(APP_DIR, "cli_settings.json")
 
 def load_config():
     default = {"default_length": 16, "use_upper": True, "use_lower": True, "use_digits": True, "use_special": True}
