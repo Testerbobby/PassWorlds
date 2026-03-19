@@ -81,7 +81,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.theme_btn = ctk.CTkButton(
             top_frame,
             text="Тема",
-            width=60,
+            width=70,
             height=30,
             font=ctk.CTkFont(size=12),
             command=self.toggle_theme
@@ -115,7 +115,7 @@ class PasswordGeneratorApp(ctk.CTk):
             self.password_frame,
             font=ctk.CTkFont(size=18),
             height=50,
-            placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G",
+            placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G/K",
             state="readonly"
         )
         self.password_entry.pack(pady=10, padx=10, fill="x")
@@ -125,7 +125,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.generate_btn = ctk.CTkButton(
             self.button_frame,
-            text="Сгенерировать (Ctrl+G)",
+            text="Сгенерировать (Ctrl+G/K)",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
             command=self.generate_password
@@ -134,7 +134,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.copy_btn = ctk.CTkButton(
             self.button_frame,
-            text="Копировать (Ctrl+C)",
+            text="Копировать (Ctrl+C/S)",
             font=ctk.CTkFont(size=14),
             height=40,
             command=self.copy_password,
@@ -238,10 +238,16 @@ class PasswordGeneratorApp(ctk.CTk):
     def bind_shortcuts(self):
         self.bind("<Control-g>", lambda e: self.generate_password())
         self.bind("<Control-G>", lambda e: self.generate_password())
+        self.bind("<Control-k>", lambda e: self.generate_password())
+        self.bind("<Control-K>", lambda e: self.generate_password())
         self.bind("<Control-c>", lambda e: self.copy_password())
         self.bind("<Control-C>", lambda e: self.copy_password())
+        self.bind("<Control-s>", lambda e: self.copy_password())
+        self.bind("<Control-S>", lambda e: self.copy_password())
         self.bind("<Control-h>", lambda e: self.open_history_window())
         self.bind("<Control-H>", lambda e: self.open_history_window())
+        self.bind("<Control-r>", lambda e: self.open_history_window())
+        self.bind("<Control-R>", lambda e: self.open_history_window())
     
     def toggle_theme(self):
         if self.settings["theme"] == "dark":
@@ -472,11 +478,13 @@ class SettingsWindow(ctk.CTkToplevel):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("400x350")
+        self.geometry("400x420")
         self.resizable(False, False)
         
+        self.parent = parent
         self.settings = settings
         self.save_callback = save_callback
+        self.original_settings = settings.copy()
         
         self.setup_ui()
     
@@ -504,7 +512,8 @@ class SettingsWindow(ctk.CTkToplevel):
         color_menu = ctk.CTkOptionMenu(
             color_frame,
             values=["blue", "green", "dark-blue"],
-            variable=self.color_var
+            variable=self.color_var,
+            command=self.change_color
         )
         color_menu.pack(pady=5)
         
@@ -540,17 +549,44 @@ class SettingsWindow(ctk.CTkToplevel):
         )
         import_btn.pack(pady=5)
         
-        save_btn = ctk.CTkButton(
-            self,
-            text="Сохранить и закрыть",
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(pady=15, fill="x", padx=20)
+        
+        reset_btn = ctk.CTkButton(
+            btn_frame,
+            text="Сброс",
+            command=self.reset_settings,
+            width=80,
+            fg_color="gray",
+            hover_color="darkgray"
+        )
+        reset_btn.pack(side="left", padx=5, expand=True, fill="x")
+        
+        cancel_btn = ctk.CTkButton(
+            btn_frame,
+            text="Отмена",
+            command=self.cancel_and_close,
+            width=80,
+            fg_color="red",
+            hover_color="darkred"
+        )
+        cancel_btn.pack(side="left", padx=5, expand=True, fill="x")
+        
+        ok_btn = ctk.CTkButton(
+            btn_frame,
+            text="OK",
             command=self.save_and_close,
+            width=80,
             fg_color="green",
             hover_color="darkgreen"
         )
-        save_btn.pack(pady=15)
+        ok_btn.pack(side="left", padx=5, expand=True, fill="x")
     
     def change_theme(self, value):
         ctk.set_appearance_mode(value)
+    
+    def change_color(self, value):
+        ctk.set_default_color_theme(value)
     
     def export_settings(self):
         filename = f"passworlds_config_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -567,6 +603,23 @@ class SettingsWindow(ctk.CTkToplevel):
             message="Для импорта настроек используйте файл passworlds_settings.json в папке с программой.",
             icon="info"
         )
+    
+    def reset_settings(self):
+        default_settings = {
+            "theme": "dark",
+            "color_theme": "blue",
+            "auto_check_hibp": True
+        }
+        self.theme_var.set(default_settings["theme"])
+        self.color_var.set(default_settings["color_theme"])
+        self.hibp_var.set(default_settings["auto_check_hibp"])
+        ctk.set_appearance_mode(default_settings["theme"])
+        ctk.set_default_color_theme(default_settings["color_theme"])
+    
+    def cancel_and_close(self):
+        ctk.set_appearance_mode(self.original_settings["theme"])
+        ctk.set_default_color_theme(self.original_settings["color_theme"])
+        self.destroy()
     
     def save_and_close(self):
         self.settings["theme"] = self.theme_var.get()
