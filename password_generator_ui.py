@@ -26,8 +26,18 @@ class PasswordGeneratorApp(ctk.CTk):
         self.load_settings()
         self.load_history()
         
+        color_rus_to_eng = {
+            "Синий": "blue",
+            "Голубой": "cyan",
+            "Красный": "red",
+            "Розовый": "pink",
+            "Зелёный": "green",
+            "Салатовый": "lime",
+            "Фиолетовый": "purple"
+        }
         ctk.set_appearance_mode(self.settings["theme"])
-        ctk.set_default_color_theme(self.settings["color_theme"])
+        eng_color = color_rus_to_eng.get(self.settings["color_theme"], "blue")
+        ctk.set_default_color_theme(eng_color)
         
         self.setup_ui()
         self.bind_shortcuts()
