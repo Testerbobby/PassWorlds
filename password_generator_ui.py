@@ -626,6 +626,30 @@ class SettingsWindow(ctk.CTkToplevel):
                     widget.configure(fg_color=colors[0], hover_color=colors[1])
             except:
                 pass
+        
+        for widget in self.parent.winfo_children():
+            self._apply_color_recursive(widget, colors)
+    
+    def _apply_color_recursive(self, widget, colors):
+        try:
+            widget_type = type(widget).__name__
+            if widget_type == "CTkButton":
+                widget.configure(fg_color=colors[0], hover_color=colors[1])
+            elif widget_type == "CTkOptionMenu":
+                widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
+            elif widget_type == "CTkCheckBox":
+                widget.configure(fg_color=colors[0], hover_color=colors[1])
+            elif widget_type == "CTkSlider":
+                widget.configure(button_color=colors[0], button_hover_color=colors[1])
+            elif widget_type == "CTkFrame":
+                widget.configure(fg_color=colors[0])
+        except:
+            pass
+        try:
+            for child in widget.winfo_children():
+                self._apply_color_recursive(child, colors)
+        except:
+            pass
     
     def reset_settings(self):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
