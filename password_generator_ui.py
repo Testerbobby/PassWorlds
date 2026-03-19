@@ -506,19 +506,20 @@ class SettingsWindow(ctk.CTkToplevel):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("350x280")
+        self.geometry("400x400")
         self.resizable(False, False)
         
         self.parent = parent
         self.settings = settings.copy()
         self.saved_settings = settings.copy()
         self.save_callback = save_callback
+        self.color_buttons = []
         
         self.setup_ui()
     
     def setup_ui(self):
         theme_frame = ctk.CTkFrame(self)
-        theme_frame.pack(pady=10, padx=20, fill="both", expand=True)
+        theme_frame.pack(pady=10, padx=20, fill="x")
         
         ctk.CTkLabel(theme_frame, text="Тема:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
@@ -528,10 +529,11 @@ class SettingsWindow(ctk.CTkToplevel):
             values=["dark", "light", "system"],
             variable=self.theme_var
         )
+        self.color_buttons.append(theme_menu)
         theme_menu.pack(pady=2, padx=20, fill="x")
         
         color_frame = ctk.CTkFrame(self)
-        color_frame.pack(pady=5, padx=20, fill="both", expand=True)
+        color_frame.pack(pady=10, padx=20, fill="x")
         
         ctk.CTkLabel(color_frame, text="Цвет темы:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
@@ -542,10 +544,11 @@ class SettingsWindow(ctk.CTkToplevel):
             variable=self.color_var,
             command=self.change_color
         )
+        self.color_buttons.append(color_menu)
         color_menu.pack(pady=2, padx=20, fill="x")
         
         options_frame = ctk.CTkFrame(self)
-        options_frame.pack(pady=5, padx=20, fill="both", expand=True)
+        options_frame.pack(pady=10, padx=20, fill="x")
         
         ctk.CTkLabel(options_frame, text="Опции:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
@@ -555,43 +558,49 @@ class SettingsWindow(ctk.CTkToplevel):
             text="Автопроверка утечек (Have I Been Pwned)",
             variable=self.hibp_var
         )
+        self.color_buttons.append(hibp_cb)
         hibp_cb.pack(pady=2, anchor="w", padx=10)
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-        btn_frame.pack(pady=15, fill="x", padx=20)
+        btn_frame.pack(pady=20, fill="x", padx=20)
+        
+        ctk.CTkLabel(btn_frame, text="", font=ctk.CTkFont(size=8)).pack()
         
         reset_btn = ctk.CTkButton(
             btn_frame,
             text="Сброс",
             command=self.reset_settings,
-            width=70,
-            height=35,
+            width=90,
+            height=40,
             fg_color="gray",
             hover_color="darkgray"
         )
-        reset_btn.pack(side="left", padx=3, fill="x", expand=True)
+        self.color_buttons.append(reset_btn)
+        reset_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         cancel_btn = ctk.CTkButton(
             btn_frame,
             text="Отмена",
             command=self.cancel_and_close,
-            width=70,
-            height=35,
+            width=90,
+            height=40,
             fg_color="#c0392b",
             hover_color="#a93226"
         )
-        cancel_btn.pack(side="left", padx=3, fill="x", expand=True)
+        self.color_buttons.append(cancel_btn)
+        cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         apply_btn = ctk.CTkButton(
             btn_frame,
             text="Применить",
             command=self.apply_and_close,
-            width=70,
-            height=35,
+            width=90,
+            height=40,
             fg_color="#27ae60",
             hover_color="#1e8449"
         )
-        apply_btn.pack(side="left", padx=3, fill="x", expand=True)
+        self.color_buttons.append(apply_btn)
+        apply_btn.pack(side="left", padx=5, fill="x", expand=True)
     
     def change_color(self, color_name):
         color_map = {
@@ -605,33 +614,18 @@ class SettingsWindow(ctk.CTkToplevel):
         }
         colors = color_map.get(color_name, color_map["Синий"])
         self.settings["color_theme"] = color_name
-        try:
-            self.parent.configure(fg_color=colors[0])
-            for widget in self.parent.winfo_children():
-                self._apply_color_to_widget(widget, colors)
-        except:
-            pass
-    
-    def _apply_color_to_widget(self, widget, colors):
-        try:
-            widget_type = type(widget).__name__
-            if widget_type in ["CTkFrame", "CTkButton", "CTkLabel"]:
-                widget.configure(fg_color=colors[0])
-            elif widget_type == "CTkEntry":
-                widget.configure(fg_color=("#343638", "#404042"), text_color=("#DCE4E5", "#DCE4E5"))
-            elif widget_type == "CTkSlider":
-                widget.configure(button_color=colors[0], button_hover_color=colors[1])
-            elif widget_type == "CTkCheckBox":
-                widget.configure(fg_color=colors[0], hover_color=colors[1])
-            elif widget_type == "CTkOptionMenu":
-                widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
-        except:
-            pass
-        try:
-            for child in widget.winfo_children():
-                self._apply_color_to_widget(child, colors)
-        except:
-            pass
+        
+        for widget in self.color_buttons:
+            try:
+                widget_type = type(widget).__name__
+                if widget_type == "CTkButton":
+                    widget.configure(fg_color=colors[0], hover_color=colors[1])
+                elif widget_type == "CTkOptionMenu":
+                    widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
+                elif widget_type == "CTkCheckBox":
+                    widget.configure(fg_color=colors[0], hover_color=colors[1])
+            except:
+                pass
     
     def reset_settings(self):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
