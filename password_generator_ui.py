@@ -6,7 +6,7 @@ import hashlib
 import json
 import os
 import webbrowser
-import keyboard
+import threading
 from datetime import datetime
 
 APP_DIR = os.path.join(os.path.expanduser("~"), ".passworlds")
@@ -29,21 +29,26 @@ class PasswordGeneratorApp(ctk.CTk):
         self.load_settings()
         self.load_history()
         
-        color_rus_to_eng = {
-            "Синий": "blue",
-            "Голубой": "cyan",
-            "Красный": "red",
-            "Розовый": "pink",
-            "Зелёный": "green",
-            "Салатовый": "lime",
-            "Фиолетовый": "purple"
+        color_eng_to_rus = {
+            "blue": "Синий",
+            "cyan": "Голубой",
+            "red": "Красный",
+            "pink": "Розовый",
+            "green": "Зелёный",
+            "lime": "Салатовый",
+            "purple": "Фиолетовый"
         }
+        
         ctk.set_appearance_mode(self.settings["theme"])
-        eng_color = color_rus_to_eng.get(self.settings["color_theme"], "blue")
-        ctk.set_default_color_theme(eng_color)
+        
+        eng_color = color_eng_to_rus.get(self.settings["color_theme"], self.settings["color_theme"])
+        if eng_color in ["blue", "green", "dark-blue"]:
+            ctk.set_default_color_theme(eng_color)
         
         self.setup_ui()
+        self.apply_color_theme(self.settings["color_theme"])
         self.bind_shortcuts()
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
     def load_settings(self):
         color_eng_to_rus = {
@@ -77,8 +82,20 @@ class PasswordGeneratorApp(ctk.CTk):
             self.settings = default_settings
     
     def save_settings(self):
+        color_rus_to_eng = {
+            "Синий": "blue",
+            "Голубой": "cyan",
+            "Красный": "red",
+            "Розовый": "pink",
+            "Зелёный": "green",
+            "Салатовый": "lime",
+            "Фиолетовый": "purple"
+        }
+        settings_to_save = self.settings.copy()
+        if settings_to_save.get("color_theme") in color_rus_to_eng:
+            settings_to_save["color_theme"] = color_rus_to_eng[settings_to_save["color_theme"]]
         with open(CONFIG_FILE, "w") as f:
-            json.dump(self.settings, f, indent=2)
+            json.dump(settings_to_save, f, indent=2)
     
     def apply_color_theme(self, color_name):
         color_map = {
@@ -88,7 +105,10 @@ class PasswordGeneratorApp(ctk.CTk):
             "Розовый": ("#e91e8a", "#c01774"),
             "Зелёный": ("#27ae60", "#1e8449"),
             "Салатовый": ("#8bc34a", "#689f38"),
-            "Фиолетовый": ("#9b59b6", "#8e44ad")
+            "Фиолетовый": ("#9b59b6", "#8e44ad"),
+            "blue": ("#3b8ed0", "#1f6aa5"),
+            "green": ("#27ae60", "#1e8449"),
+            "dark-blue": ("#3b8ed0", "#1f6aa5")
         }
         colors = color_map.get(color_name, color_map["Синий"])
         
@@ -271,8 +291,25 @@ class PasswordGeneratorApp(ctk.CTk):
         self.status_label.pack(pady=5)
     
     def bind_shortcuts(self):
-        keyboard.add_hotkey("ctrl+g", self.generate_password)
-        keyboard.add_hotkey("ctrl+h", self.open_history_window)
+        try:
+            import keyboard
+            self._keyboard_shortcuts = [
+                keyboard.add_hotkey("ctrl+g", self.generate_password, suppress=True),
+                keyboard.add_hotkey("ctrl+h", self.open_history_window, suppress=True)
+            ]
+            self.bind("<Control-g>", lambda e: None)
+            self.bind("<Control-h>", lambda e: None)
+        except:
+            self.bind("<Control-g>", lambda e: self.generate_password())
+            self.bind("<Control-h>", lambda e: self.open_history_window())
+    
+    def on_closing(self):
+        try:
+            import keyboard
+            keyboard.unhook_all()
+        except:
+            pass
+        self.destroy()
     
     def update_length_label(self, value):
         self.length_label.configure(text=f"Длина пароля: {int(value)}")
