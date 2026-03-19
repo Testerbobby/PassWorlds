@@ -474,17 +474,23 @@ class HistoryWindow(ctk.CTkToplevel):
             )
 
 class SettingsWindow(ctk.CTkToplevel):
+    DEFAULT_SETTINGS = {
+        "theme": "light",
+        "color_theme": "blue",
+        "auto_check_hibp": True
+    }
+    
     def __init__(self, parent, settings, save_callback):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("400x420")
+        self.geometry("400x320")
         self.resizable(False, False)
         
         self.parent = parent
-        self.settings = settings
+        self.settings = settings.copy()
+        self.saved_settings = settings.copy()
         self.save_callback = save_callback
-        self.original_settings = settings.copy()
         
         self.setup_ui()
     
@@ -498,8 +504,7 @@ class SettingsWindow(ctk.CTkToplevel):
         theme_menu = ctk.CTkOptionMenu(
             theme_frame,
             values=["dark", "light", "system"],
-            variable=self.theme_var,
-            command=self.change_theme
+            variable=self.theme_var
         )
         theme_menu.pack(pady=5)
         
@@ -509,13 +514,30 @@ class SettingsWindow(ctk.CTkToplevel):
         ctk.CTkLabel(color_frame, text="Цвет темы:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=5)
         
         self.color_var = ctk.StringVar(value=self.settings["color_theme"])
-        color_menu = ctk.CTkOptionMenu(
-            color_frame,
-            values=["blue", "green", "dark-blue"],
-            variable=self.color_var,
-            command=self.change_color
-        )
-        color_menu.pack(pady=5)
+        self.color_buttons = {}
+        
+        colors = [
+            ("blue", "Синий"),
+            ("cyan", "Голубой"),
+            ("red", "Красный"),
+            ("pink", "Розовый"),
+            ("green", "Зелёный"),
+            ("lime", "Салатовый"),
+            ("purple", "Фиолетовый")
+        ]
+        
+        for color_key, color_name in colors:
+            btn = ctk.CTkButton(
+                color_frame,
+                text=color_name,
+                width=80,
+                height=30,
+                command=lambda c=color_key: self.change_color(c)
+            )
+            btn.pack(side="left", padx=2, pady=5)
+            self.color_buttons[color_key] = btn
+        
+        self.update_color_buttons()
         
         options_frame = ctk.CTkFrame(self)
         options_frame.pack(pady=10, padx=20, fill="x")
@@ -529,25 +551,6 @@ class SettingsWindow(ctk.CTkToplevel):
             variable=self.hibp_var
         )
         hibp_cb.pack(pady=5, anchor="w", padx=10)
-        
-        export_frame = ctk.CTkFrame(self)
-        export_frame.pack(pady=10, padx=20, fill="x")
-        
-        ctk.CTkLabel(export_frame, text="Данные:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=5)
-        
-        export_btn = ctk.CTkButton(
-            export_frame,
-            text="Экспорт настроек",
-            command=self.export_settings
-        )
-        export_btn.pack(pady=5)
-        
-        import_btn = ctk.CTkButton(
-            export_frame,
-            text="Импорт настроек",
-            command=self.import_settings
-        )
-        import_btn.pack(pady=5)
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=15, fill="x", padx=20)
@@ -572,60 +575,155 @@ class SettingsWindow(ctk.CTkToplevel):
         )
         cancel_btn.pack(side="left", padx=5, expand=True, fill="x")
         
-        ok_btn = ctk.CTkButton(
+        apply_btn = ctk.CTkButton(
             btn_frame,
-            text="OK",
-            command=self.save_and_close,
+            text="Применить",
+            command=self.apply_and_close,
             width=80,
             fg_color="green",
             hover_color="darkgreen"
         )
-        ok_btn.pack(side="left", padx=5, expand=True, fill="x")
+        apply_btn.pack(side="left", padx=5, expand=True, fill="x")
     
-    def change_theme(self, value):
-        ctk.set_appearance_mode(value)
+    def change_color(self, color_key):
+        self.color_var.set(color_key)
+        self.update_color_buttons()
+        self.apply_color_theme(color_key)
     
-    def change_color(self, value):
-        ctk.set_default_color_theme(value)
+    def apply_color_theme(self, color_key):
+        color_themes = {
+            "blue": {
+                "CTk": ("#3b8ed0", "#1f6aa5"),
+                "CTkFrame": ("#3b8ed0", "#1f6aa5"),
+                "CTkButton": ("#3b8ed0", "#1f6aa5"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#3b8ed0", "#1f6aa5"),
+                "CTkCheckBox": ("#3b8ed0", "#1f6aa5"),
+                "CTkOptionMenu": ("#3b8ed0", "#1f6aa5")
+            },
+            "cyan": {
+                "CTk": ("#00a8cc", "#007a99"),
+                "CTkFrame": ("#00a8cc", "#007a99"),
+                "CTkButton": ("#00a8cc", "#007a99"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#00a8cc", "#007a99"),
+                "CTkCheckBox": ("#00a8cc", "#007a99"),
+                "CTkOptionMenu": ("#00a8cc", "#007a99")
+            },
+            "red": {
+                "CTk": ("#e74c3c", "#c0392b"),
+                "CTkFrame": ("#e74c3c", "#c0392b"),
+                "CTkButton": ("#e74c3c", "#c0392b"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#e74c3c", "#c0392b"),
+                "CTkCheckBox": ("#e74c3c", "#c0392b"),
+                "CTkOptionMenu": ("#e74c3c", "#c0392b")
+            },
+            "pink": {
+                "CTk": ("#e91e8a", "#c01774"),
+                "CTkFrame": ("#e91e8a", "#c01774"),
+                "CTkButton": ("#e91e8a", "#c01774"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#e91e8a", "#c01774"),
+                "CTkCheckBox": ("#e91e8a", "#c01774"),
+                "CTkOptionMenu": ("#e91e8a", "#c01774")
+            },
+            "green": {
+                "CTk": ("#27ae60", "#1e8449"),
+                "CTkFrame": ("#27ae60", "#1e8449"),
+                "CTkButton": ("#27ae60", "#1e8449"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#27ae60", "#1e8449"),
+                "CTkCheckBox": ("#27ae60", "#1e8449"),
+                "CTkOptionMenu": ("#27ae60", "#1e8449")
+            },
+            "lime": {
+                "CTk": ("#8bc34a", "#689f38"),
+                "CTkFrame": ("#8bc34a", "#689f38"),
+                "CTkButton": ("#8bc34a", "#689f38"),
+                "CTkLabel": ("#2d2d2d", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#8bc34a", "#689f38"),
+                "CTkCheckBox": ("#8bc34a", "#689f38"),
+                "CTkOptionMenu": ("#8bc34a", "#689f38")
+            },
+            "purple": {
+                "CTk": ("#9b59b6", "#8e44ad"),
+                "CTkFrame": ("#9b59b6", "#8e44ad"),
+                "CTkButton": ("#9b59b6", "#8e44ad"),
+                "CTkLabel": ("#DCE4E5", "#DCE4E5"),
+                "CTkEntry": ("#343638", "#404042"),
+                "CTkSlider": ("#9b59b6", "#8e44ad"),
+                "CTkCheckBox": ("#9b59b6", "#8e44ad"),
+                "CTkOptionMenu": ("#9b59b6", "#8e44ad")
+            }
+        }
+        
+        if color_key in color_themes:
+            try:
+                import tkinter as tk
+                root = self.winfo_toplevel()
+                root.configure(fg_color=color_themes[color_key]["CTk"][0])
+                for widget in root.winfo_children():
+                    self._update_widget_colors(widget, color_themes[color_key])
+            except:
+                pass
     
-    def export_settings(self):
-        filename = f"passworlds_config_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    def _update_widget_colors(self, widget, colors):
         try:
-            with open(filename, "w", encoding="utf-8") as f:
-                json.dump(self.settings, f, indent=2)
-            ctk.CTkMessagebox(title="Успех", message=f"Настройки сохранены в {filename}", icon="check")
-        except Exception as e:
-            ctk.CTkMessagebox(title="Ошибка", message=f"Ошибка: {str(e)}", icon="cancel")
+            widget.configure(fg_color=colors.get(type(widget).__name__, colors["CTkFrame"])[0])
+        except:
+            pass
+        try:
+            for child in widget.winfo_children():
+                self._update_widget_colors(child, colors)
+        except:
+            pass
     
-    def import_settings(self):
-        ctk.CTkMessagebox(
-            title="Информация",
-            message="Для импорта настроек используйте файл passworlds_settings.json в папке с программой.",
-            icon="info"
-        )
+    def update_color_buttons(self):
+        current = self.color_var.get()
+        selected_colors = {
+            "blue": ("#3b8ed0", "#1f6aa5"),
+            "cyan": ("#00a8cc", "#007a99"),
+            "red": ("#e74c3c", "#c0392b"),
+            "pink": ("#e91e8a", "#c01774"),
+            "green": ("#27ae60", "#1e8449"),
+            "lime": ("#8bc34a", "#689f38"),
+            "purple": ("#9b59b6", "#8e44ad")
+        }
+        default_color = ("#3b8ed0", "#1f6aa5")
+        for key, btn in self.color_buttons.items():
+            if key == current:
+                colors = selected_colors.get(key, default_color)
+                btn.configure(fg_color=colors[0], hover_color=colors[1])
+            else:
+                btn.configure(fg_color="#5a5a5a", hover_color="#4a4a4a")
     
     def reset_settings(self):
-        default_settings = {
-            "theme": "dark",
-            "color_theme": "blue",
-            "auto_check_hibp": True
-        }
-        self.theme_var.set(default_settings["theme"])
-        self.color_var.set(default_settings["color_theme"])
-        self.hibp_var.set(default_settings["auto_check_hibp"])
-        ctk.set_appearance_mode(default_settings["theme"])
-        ctk.set_default_color_theme(default_settings["color_theme"])
+        self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
+        self.color_var.set(self.DEFAULT_SETTINGS["color_theme"])
+        self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
+        ctk.set_appearance_mode(self.DEFAULT_SETTINGS["theme"])
+        self.apply_color_theme(self.DEFAULT_SETTINGS["color_theme"])
+        self.update_color_buttons()
     
     def cancel_and_close(self):
-        ctk.set_appearance_mode(self.original_settings["theme"])
-        ctk.set_default_color_theme(self.original_settings["color_theme"])
+        ctk.set_appearance_mode(self.saved_settings["theme"])
+        self.apply_color_theme(self.saved_settings["color_theme"])
         self.destroy()
     
-    def save_and_close(self):
+    def apply_and_close(self):
         self.settings["theme"] = self.theme_var.get()
         self.settings["color_theme"] = self.color_var.get()
         self.settings["auto_check_hibp"] = self.hibp_var.get()
         
+        self.saved_settings = self.settings.copy()
+        ctk.set_appearance_mode(self.settings["theme"])
         self.save_callback()
         self.destroy()
 
