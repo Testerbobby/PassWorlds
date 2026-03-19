@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import webbrowser
+import keyboard
 from datetime import datetime
 
 CONFIG_FILE = "passworlds_settings.json"
@@ -147,7 +148,7 @@ class PasswordGeneratorApp(ctk.CTk):
             self.password_frame,
             font=ctk.CTkFont(size=18),
             height=50,
-            placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G/K",
+            placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G",
             state="readonly"
         )
         self.password_entry.pack(pady=10, padx=10, fill="x")
@@ -157,7 +158,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.generate_btn = ctk.CTkButton(
             self.button_frame,
-            text="Сгенерировать (Ctrl+G/K)",
+            text="Сгенерировать (Ctrl+G)",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
             command=self.generate_password
@@ -166,7 +167,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.copy_btn = ctk.CTkButton(
             self.button_frame,
-            text="Копировать (Ctrl+C/S)",
+            text="Копировать",
             font=ctk.CTkFont(size=14),
             height=40,
             command=self.copy_password,
@@ -268,17 +269,8 @@ class PasswordGeneratorApp(ctk.CTk):
         self.status_label.pack(pady=5)
     
     def bind_shortcuts(self):
-        self.bind("<Control-g>", lambda e: self.generate_password())
-        self.bind("<Control-G>", lambda e: self.generate_password())
-        self.bind("<Control-k>", lambda e: self.generate_password())
-        self.bind("<Control-K>", lambda e: self.generate_password())
-        self.bind("<Control-c>", lambda e: self.copy_password())
-        self.bind("<Control-C>", lambda e: self.copy_password())
-        self.bind("<Control-s>", lambda e: self.copy_password())
-        self.bind("<Control-S>", lambda e: self.copy_password())
-        self.bind("<Control-h>", lambda e: self.open_history_window())
-        self.bind("<Control-H>", lambda e: self.open_history_window())
-        self.bind("<Control-R>", lambda e: self.open_history_window())
+        keyboard.add_hotkey("ctrl+g", self.generate_password)
+        keyboard.add_hotkey("ctrl+h", self.open_history_window)
     
     def update_length_label(self, value):
         self.length_label.configure(text=f"Длина пароля: {int(value)}")
