@@ -77,6 +77,26 @@ class PasswordGeneratorApp(ctk.CTk):
         with open(CONFIG_FILE, "w") as f:
             json.dump(self.settings, f, indent=2)
     
+    def apply_color_theme(self, color_name):
+        color_map = {
+            "Синий": ("#3b8ed0", "#1f6aa5"),
+            "Голубой": ("#00a8cc", "#007a99"),
+            "Красный": ("#e74c3c", "#c0392b"),
+            "Розовый": ("#e91e8a", "#c01774"),
+            "Зелёный": ("#27ae60", "#1e8449"),
+            "Салатовый": ("#8bc34a", "#689f38"),
+            "Фиолетовый": ("#9b59b6", "#8e44ad")
+        }
+        colors = color_map.get(color_name, color_map["Синий"])
+        
+        for btn in [self.theme_btn, self.settings_btn, self.history_btn, self.generate_btn, self.copy_btn]:
+            btn.configure(fg_color=colors[0], hover_color=colors[1])
+        
+        self.length_slider.configure(button_color=colors[0], button_hover_color=colors[1])
+        
+        for cb in [self.uppercase_cb, self.lowercase_cb, self.digits_cb, self.special_cb]:
+            cb.configure(fg_color=colors[0], hover_color=colors[1])
+    
     def load_history(self):
         if os.path.exists(HISTORY_FILE):
             try:
@@ -627,34 +647,13 @@ class SettingsWindow(ctk.CTkToplevel):
             except:
                 pass
         
-        for widget in self.parent.winfo_children():
-            self._apply_color_recursive(widget, colors)
-    
-    def _apply_color_recursive(self, widget, colors):
-        try:
-            widget_type = type(widget).__name__
-            if widget_type == "CTkButton":
-                widget.configure(fg_color=colors[0], hover_color=colors[1])
-            elif widget_type == "CTkOptionMenu":
-                widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
-            elif widget_type == "CTkCheckBox":
-                widget.configure(fg_color=colors[0], hover_color=colors[1])
-            elif widget_type == "CTkSlider":
-                widget.configure(button_color=colors[0], button_hover_color=colors[1])
-            elif widget_type == "CTkFrame":
-                widget.configure(fg_color=colors[0])
-        except:
-            pass
-        try:
-            for child in widget.winfo_children():
-                self._apply_color_recursive(child, colors)
-        except:
-            pass
+        self.parent.apply_color_theme(color_name)
     
     def reset_settings(self):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
         self.color_var.set(self.DEFAULT_SETTINGS["color_theme"])
         self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
+        self.parent.apply_color_theme(self.DEFAULT_SETTINGS["color_theme"])
     
     def cancel_and_close(self):
         self.destroy()
