@@ -33,9 +33,18 @@ class PasswordGeneratorApp(ctk.CTk):
         self.bind_shortcuts()
     
     def load_settings(self):
+        color_eng_to_rus = {
+            "blue": "Синий",
+            "cyan": "Голубой",
+            "red": "Красный",
+            "pink": "Розовый",
+            "green": "Зелёный",
+            "lime": "Салатовый",
+            "purple": "Фиолетовый"
+        }
         default_settings = {
-            "theme": "dark",
-            "color_theme": "blue",
+            "theme": "light",
+            "color_theme": "Синий",
             "default_length": 16,
             "use_upper": True,
             "use_lower": True,
@@ -47,7 +56,10 @@ class PasswordGeneratorApp(ctk.CTk):
         
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, "r") as f:
-                self.settings = {**default_settings, **json.load(f)}
+                loaded = json.load(f)
+                if loaded.get("color_theme") in color_eng_to_rus:
+                    loaded["color_theme"] = color_eng_to_rus[loaded["color_theme"]]
+                self.settings = {**default_settings, **loaded}
         else:
             self.settings = default_settings
     
@@ -476,7 +488,7 @@ class HistoryWindow(ctk.CTkToplevel):
 class SettingsWindow(ctk.CTkToplevel):
     DEFAULT_SETTINGS = {
         "theme": "light",
-        "color_theme": "blue",
+        "color_theme": "Синий",
         "auto_check_hibp": True
     }
     
@@ -573,36 +585,58 @@ class SettingsWindow(ctk.CTkToplevel):
     
     def change_color(self, color_name):
         color_map = {
-            "Синий": "blue",
-            "Голубой": "cyan",
-            "Красный": "red",
-            "Розовый": "pink",
-            "Зелёный": "green",
-            "Салатовый": "lime",
-            "Фиолетовый": "purple"
+            "Синий": ("#3b8ed0", "#1f6aa5"),
+            "Голубой": ("#00a8cc", "#007a99"),
+            "Красный": ("#e74c3c", "#c0392b"),
+            "Розовый": ("#e91e8a", "#c01774"),
+            "Зелёный": ("#27ae60", "#1e8449"),
+            "Салатовый": ("#8bc34a", "#689f38"),
+            "Фиолетовый": ("#9b59b6", "#8e44ad")
         }
-        color_key = color_map.get(color_name, "blue")
-        self.settings["color_theme"] = color_key
-        ctk.set_default_color_theme(color_key)
+        colors = color_map.get(color_name, color_map["Синий"])
+        self.settings["color_theme"] = color_name
+        try:
+            self.parent.configure(fg_color=colors[0])
+            for widget in self.parent.winfo_children():
+                self._apply_color_to_widget(widget, colors)
+        except:
+            pass
+    
+    def _apply_color_to_widget(self, widget, colors):
+        try:
+            widget_type = type(widget).__name__
+            if widget_type in ["CTkFrame", "CTkButton", "CTkLabel"]:
+                widget.configure(fg_color=colors[0])
+            elif widget_type == "CTkEntry":
+                widget.configure(fg_color=("#343638", "#404042"), text_color=("#DCE4E5", "#DCE4E5"))
+            elif widget_type == "CTkSlider":
+                widget.configure(button_color=colors[0], button_hover_color=colors[1])
+            elif widget_type == "CTkCheckBox":
+                widget.configure(fg_color=colors[0], hover_color=colors[1])
+            elif widget_type == "CTkOptionMenu":
+                widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
+        except:
+            pass
+        try:
+            for child in widget.winfo_children():
+                self._apply_color_to_widget(child, colors)
+        except:
+            pass
     
     def reset_settings(self):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
-        color_map = {"blue": "Синий", "cyan": "Голубой", "red": "Красный", "pink": "Розовый", "green": "Зелёный", "lime": "Салатовый", "purple": "Фиолетовый"}
-        self.color_var.set(color_map.get(self.DEFAULT_SETTINGS["color_theme"], "Синий"))
+        self.color_var.set(self.DEFAULT_SETTINGS["color_theme"])
         self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
     
     def cancel_and_close(self):
-        ctk.set_default_color_theme(self.saved_settings["color_theme"])
         self.destroy()
     
     def apply_and_close(self):
-        color_map = {"Синий": "blue", "Голубой": "cyan", "Красный": "red", "Розовый": "pink", "Зелёный": "green", "Салатовый": "lime", "Фиолетовый": "purple"}
         self.settings["theme"] = self.theme_var.get()
-        self.settings["color_theme"] = color_map.get(self.color_var.get(), "blue")
+        self.settings["color_theme"] = self.color_var.get()
         self.settings["auto_check_hibp"] = self.hibp_var.get()
         
         ctk.set_appearance_mode(self.settings["theme"])
-        ctk.set_default_color_theme(self.settings["color_theme"])
         self.save_callback()
         self.destroy()
 
