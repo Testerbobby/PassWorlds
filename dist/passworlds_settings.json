@@ -1,6 +1,6 @@
 {
-  "theme": "light",
-  "color_theme": "\u0421\u0438\u043d\u0438\u0439",
+  "theme": "dark",
+  "color_theme": "\u0420\u043e\u0437\u043e\u0432\u044b\u0439",
   "default_length": 16,
   "use_upper": true,
   "use_lower": true,

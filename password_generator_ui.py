@@ -89,7 +89,7 @@ class PasswordGeneratorApp(ctk.CTk):
         }
         colors = color_map.get(color_name, color_map["Синий"])
         
-        for btn in [self.theme_btn, self.settings_btn, self.history_btn, self.generate_btn, self.copy_btn]:
+        for btn in [self.settings_btn, self.history_btn, self.generate_btn, self.copy_btn]:
             btn.configure(fg_color=colors[0], hover_color=colors[1])
         
         self.length_slider.configure(button_color=colors[0], button_hover_color=colors[1])
@@ -120,20 +120,10 @@ class PasswordGeneratorApp(ctk.CTk):
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
         top_frame.pack(pady=5, padx=20, fill="x")
         
-        self.theme_btn = ctk.CTkButton(
-            top_frame,
-            text="Тема",
-            width=70,
-            height=30,
-            font=ctk.CTkFont(size=12),
-            command=self.toggle_theme
-        )
-        self.theme_btn.pack(side="left", padx=2)
-        
         self.settings_btn = ctk.CTkButton(
             top_frame,
             text="Настройки",
-            width=80,
+            width=90,
             height=30,
             font=ctk.CTkFont(size=12),
             command=self.open_settings_window
@@ -288,20 +278,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.bind("<Control-S>", lambda e: self.copy_password())
         self.bind("<Control-h>", lambda e: self.open_history_window())
         self.bind("<Control-H>", lambda e: self.open_history_window())
-        self.bind("<Control-r>", lambda e: self.open_history_window())
         self.bind("<Control-R>", lambda e: self.open_history_window())
-    
-    def toggle_theme(self):
-        if self.settings["theme"] == "dark":
-            self.settings["theme"] = "light"
-            ctk.set_appearance_mode("light")
-        elif self.settings["theme"] == "light":
-            self.settings["theme"] = "system"
-            ctk.set_appearance_mode("system")
-        else:
-            self.settings["theme"] = "dark"
-            ctk.set_appearance_mode("dark")
-        self.save_settings()
     
     def update_length_label(self, value):
         self.length_label.configure(text=f"Длина пароля: {int(value)}")
@@ -428,7 +405,7 @@ class PasswordGeneratorApp(ctk.CTk):
         HistoryWindow(self, self.password_history)
     
     def open_settings_window(self):
-        SettingsWindow(self, self.settings, self.save_settings)
+        SettingsWindow(self)
 
 class HistoryWindow(ctk.CTkToplevel):
     def __init__(self, parent, history):
@@ -516,23 +493,14 @@ class HistoryWindow(ctk.CTkToplevel):
             )
 
 class SettingsWindow(ctk.CTkToplevel):
-    DEFAULT_SETTINGS = {
-        "theme": "light",
-        "color_theme": "Синий",
-        "auto_check_hibp": True
-    }
-    
-    def __init__(self, parent, settings, save_callback):
+    def __init__(self, parent):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("400x400")
+        self.geometry("350x350")
         self.resizable(False, False)
         
         self.parent = parent
-        self.settings = settings.copy()
-        self.saved_settings = settings.copy()
-        self.save_callback = save_callback
         self.color_buttons = []
         
         self.setup_ui()
@@ -543,21 +511,20 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkLabel(theme_frame, text="Тема:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
-        self.theme_var = ctk.StringVar(value=self.settings["theme"])
+        self.theme_var = ctk.StringVar(value=self.parent.settings["theme"])
         theme_menu = ctk.CTkOptionMenu(
             theme_frame,
             values=["dark", "light", "system"],
             variable=self.theme_var
         )
-        self.color_buttons.append(theme_menu)
         theme_menu.pack(pady=2, padx=20, fill="x")
         
         color_frame = ctk.CTkFrame(self)
         color_frame.pack(pady=10, padx=20, fill="x")
         
-        ctk.CTkLabel(color_frame, text="Цвет темы:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
+        ctk.CTkLabel(color_frame, text="Цвет кнопок:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
-        self.color_var = ctk.StringVar(value=self.settings["color_theme"])
+        self.color_var = ctk.StringVar(value=self.parent.settings["color_theme"])
         color_menu = ctk.CTkOptionMenu(
             color_frame,
             values=["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"],
@@ -572,19 +539,16 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkLabel(options_frame, text="Опции:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
-        self.hibp_var = ctk.BooleanVar(value=self.settings.get("auto_check_hibp", True))
+        self.hibp_var = ctk.BooleanVar(value=self.parent.settings.get("auto_check_hibp", True))
         hibp_cb = ctk.CTkCheckBox(
             options_frame,
             text="Автопроверка утечек (Have I Been Pwned)",
             variable=self.hibp_var
         )
-        self.color_buttons.append(hibp_cb)
         hibp_cb.pack(pady=2, anchor="w", padx=10)
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=20, fill="x", padx=20)
-        
-        ctk.CTkLabel(btn_frame, text="", font=ctk.CTkFont(size=8)).pack()
         
         reset_btn = ctk.CTkButton(
             btn_frame,
@@ -595,7 +559,6 @@ class SettingsWindow(ctk.CTkToplevel):
             fg_color="gray",
             hover_color="darkgray"
         )
-        self.color_buttons.append(reset_btn)
         reset_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         cancel_btn = ctk.CTkButton(
@@ -607,7 +570,6 @@ class SettingsWindow(ctk.CTkToplevel):
             fg_color="#c0392b",
             hover_color="#a93226"
         )
-        self.color_buttons.append(cancel_btn)
         cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         apply_btn = ctk.CTkButton(
@@ -619,7 +581,6 @@ class SettingsWindow(ctk.CTkToplevel):
             fg_color="#27ae60",
             hover_color="#1e8449"
         )
-        self.color_buttons.append(apply_btn)
         apply_btn.pack(side="left", padx=5, fill="x", expand=True)
     
     def change_color(self, color_name):
@@ -633,26 +594,21 @@ class SettingsWindow(ctk.CTkToplevel):
             "Фиолетовый": ("#9b59b6", "#8e44ad")
         }
         colors = color_map.get(color_name, color_map["Синий"])
-        self.settings["color_theme"] = color_name
         
         for widget in self.color_buttons:
             try:
                 widget_type = type(widget).__name__
-                if widget_type == "CTkButton":
-                    widget.configure(fg_color=colors[0], hover_color=colors[1])
-                elif widget_type == "CTkOptionMenu":
+                if widget_type == "CTkOptionMenu":
                     widget.configure(fg_color=colors[0], button_color=colors[0], button_hover_color=colors[1])
-                elif widget_type == "CTkCheckBox":
-                    widget.configure(fg_color=colors[0], hover_color=colors[1])
             except:
                 pass
         
         self.parent.apply_color_theme(color_name)
     
     def reset_settings(self):
-        self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
-        self.color_var.set(self.DEFAULT_SETTINGS["color_theme"])
-        self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
+        self.theme_var.set(self.parent.settings["theme"])
+        self.color_var.set(self.parent.settings["color_theme"])
+        self.hibp_var.set(self.parent.settings["auto_check_hibp"])
     
     def cancel_and_close(self):
         self.destroy()
