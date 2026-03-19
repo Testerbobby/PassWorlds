@@ -653,18 +653,20 @@ class SettingsWindow(ctk.CTkToplevel):
         self.theme_var.set(self.DEFAULT_SETTINGS["theme"])
         self.color_var.set(self.DEFAULT_SETTINGS["color_theme"])
         self.hibp_var.set(self.DEFAULT_SETTINGS["auto_check_hibp"])
-        self.parent.apply_color_theme(self.DEFAULT_SETTINGS["color_theme"])
     
     def cancel_and_close(self):
         self.destroy()
     
     def apply_and_close(self):
-        self.settings["theme"] = self.theme_var.get()
-        self.settings["color_theme"] = self.color_var.get()
-        self.settings["auto_check_hibp"] = self.hibp_var.get()
+        color_name = self.color_var.get()
         
-        ctk.set_appearance_mode(self.settings["theme"])
-        self.save_callback()
+        self.parent.settings["theme"] = self.theme_var.get()
+        self.parent.settings["color_theme"] = color_name
+        self.parent.settings["auto_check_hibp"] = self.hibp_var.get()
+        
+        ctk.set_appearance_mode(self.parent.settings["theme"])
+        self.parent.apply_color_theme(color_name)
+        self.parent.save_settings()
         self.destroy()
 
 if __name__ == "__main__":
