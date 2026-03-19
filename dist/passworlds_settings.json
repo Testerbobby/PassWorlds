@@ -1,0 +1,11 @@
+{
+  "theme": "dark",
+  "color_theme": "\u0417\u0435\u043b\u0451\u043d\u044b\u0439",
+  "default_length": 16,
+  "use_upper": true,
+  "use_lower": true,
+  "use_digits": true,
+  "use_special": true,
+  "master_password": "",
+  "auto_check_hibp": true
+}

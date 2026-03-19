@@ -517,6 +517,7 @@ class SettingsWindow(ctk.CTkToplevel):
             values=["dark", "light", "system"],
             variable=self.theme_var
         )
+        self.color_buttons.append(theme_menu)
         theme_menu.pack(pady=2, padx=20, fill="x")
         
         color_frame = ctk.CTkFrame(self)
@@ -612,6 +613,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.theme_var.set(self.parent.settings["theme"])
         self.color_var.set(self.parent.settings["color_theme"])
         self.hibp_var.set(self.parent.settings["auto_check_hibp"])
+        self.change_color(self.parent.settings["color_theme"])
     
     def cancel_and_close(self):
         self.destroy()
@@ -624,6 +626,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.parent.settings["auto_check_hibp"] = self.hibp_var.get()
         
         ctk.set_appearance_mode(self.parent.settings["theme"])
+        self.change_color(color_name)
         self.parent.apply_color_theme(color_name)
         self.parent.save_settings()
         self.destroy()
