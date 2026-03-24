@@ -28,6 +28,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.password_history = []
         self.hibp_count = 0
         self.is_locked = False
+        self.settings_window = None
         self.master_password_hash = ""
         self.last_activity = datetime.now()
         self.load_master_password()
@@ -110,7 +111,7 @@ class PasswordGeneratorApp(ctk.CTk):
             "use_digits": True,
             "use_special": True,
             "auto_check_hibp": True,
-            "auto_lock_timeout": 5
+            "auto_lock_timeout": 0
         }
         
         if os.path.exists(CONFIG_FILE):
@@ -670,15 +671,27 @@ class PasswordGeneratorApp(ctk.CTk):
             HistoryWindow(self, self.password_history)
     
     def show_history_auth(self):
+        color_map = {
+            "Синий": ("#3b8ed0", "#1f6aa5"),
+            "Голубой": ("#00a8cc", "#007a99"),
+            "Красный": ("#e74c3c", "#c0392b"),
+            "Розовый": ("#e91e8a", "#c01774"),
+            "Зелёный": ("#27ae60", "#1e8449"),
+            "Салатовый": ("#8bc34a", "#689f38"),
+            "Фиолетовый": ("#9b59b6", "#8e44ad")
+        }
+        current_color = self.settings.get("color_theme", "Синий")
+        colors = color_map.get(current_color, color_map["Синий"])
+        
         auth_win = ctk.CTkToplevel(self)
         auth_win.title("Подтверждение")
-        auth_win.geometry("300x150")
+        auth_win.geometry("320x180")
         auth_win.resizable(False, False)
         auth_win.transient(self)
         
-        ctk.CTkLabel(auth_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14)).pack(pady=20)
+        ctk.CTkLabel(auth_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
-        password_entry = ctk.CTkEntry(auth_win, show="*", width=200)
+        password_entry = ctk.CTkEntry(auth_win, show="*", width=200, font=ctk.CTkFont(size=14))
         password_entry.pack(pady=10)
         
         def try_show():
@@ -689,12 +702,24 @@ class PasswordGeneratorApp(ctk.CTk):
             else:
                 ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
         
-        ctk.CTkButton(auth_win, text="Показать", command=try_show, width=100).pack(pady=10)
+        ctk.CTkButton(
+            auth_win, 
+            text="Показать", 
+            command=try_show, 
+            width=120,
+            height=35,
+            fg_color=colors[0],
+            hover_color=colors[1]
+        ).pack(pady=10)
         password_entry.focus()
         auth_win.bind("<Return>", lambda e: try_show())
     
     def open_settings_window(self):
-        SettingsWindow(self)
+        if self.settings_window is None or not self.settings_window.winfo_exists():
+            self.settings_window = SettingsWindow(self)
+        else:
+            self.settings_window.lift()
+            self.settings_window.focus()
     
     def reset_to_defaults(self):
         self.settings = {
@@ -818,11 +843,19 @@ class SettingsWindow(ctk.CTkToplevel):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("380x520")
-        self.resizable(True, True)
+        self.geometry("380x600")
+        self.resizable(False, False)
         
         self.parent = parent
         self.color_buttons = []
+        
+        self.initial_settings = {
+            "theme": parent.settings["theme"],
+            "color_theme": parent.settings["color_theme"],
+            "auto_check_hibp": parent.settings.get("auto_check_hibp", True),
+            "auto_lock_timeout": parent.settings.get("auto_lock_timeout", 5),
+            "has_master": parent.has_master_password()
+        }
         
         self.setup_ui()
     
@@ -891,11 +924,12 @@ class SettingsWindow(ctk.CTkToplevel):
             variable=self.master_var,
             command=self.toggle_master_password
         )
+        self.color_buttons.append(master_cb)
         master_cb.pack(pady=2, anchor="w", padx=10)
         
         self.master_entry = ctk.CTkEntry(
             master_frame,
-            placeholder_text="Введите новый мастер-пароль",
+            placeholder_text="Придумайте пароль",
             show="*",
             state="disabled"
         )
@@ -903,15 +937,15 @@ class SettingsWindow(ctk.CTkToplevel):
         
         self.master_entry_confirm = ctk.CTkEntry(
             master_frame,
-            placeholder_text="Подтвердите мастер-пароль",
+            placeholder_text="Повторите пароль",
             show="*",
             state="disabled"
         )
         self.master_entry_confirm.pack(pady=2, padx=10, fill="x")
         
         if self.parent.has_master_password():
-            self.master_entry.configure(state="normal", placeholder_text="Оставьте пустым чтобы не менять")
-            self.master_entry_confirm.configure(state="normal", placeholder_text="Оставьте пустым чтобы не менять")
+            self.master_entry.configure(state="normal", placeholder_text="Введите новый пароль или оставьте пустым")
+            self.master_entry_confirm.configure(state="normal", placeholder_text="Повторите новый пароль")
         
         self.toggle_master_password()
         
@@ -920,15 +954,18 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkLabel(timeout_frame, text="Автоблокировка:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
-        self.timeout_var = ctk.IntVar(value=self.parent.settings.get("auto_lock_timeout", 5))
+        timeout_map = {0: "откл", 1: "1 минута", 5: "5 минут", 10: "10 минут", 15: "15 минут", 30: "30 минут"}
+        current_timeout = self.parent.settings.get("auto_lock_timeout", 0)
+        current_timeout_str = timeout_map.get(current_timeout, "откл")
+        
+        self.timeout_var = ctk.StringVar(value=current_timeout_str)
         timeout_menu = ctk.CTkOptionMenu(
             timeout_frame,
-            values=["0", "1", "5", "10", "15", "30"],
+            values=["откл", "1 минута", "5 минут", "10 минут", "15 минут", "30 минут"],
             variable=self.timeout_var
         )
+        self.color_buttons.append(timeout_menu)
         timeout_menu.pack(pady=2, padx=20, fill="x")
-        
-        ctk.CTkLabel(timeout_frame, text="минут (0 = выкл)", font=ctk.CTkFont(size=11)).pack(pady=(0, 5))
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=20, fill="x", padx=20)
@@ -947,7 +984,7 @@ class SettingsWindow(ctk.CTkToplevel):
         cancel_btn = ctk.CTkButton(
             btn_frame,
             text="Отмена",
-            command=self.cancel_and_close,
+            command=self.cancel_changes,
             width=90,
             height=40,
             fg_color="#c0392b",
@@ -968,6 +1005,21 @@ class SettingsWindow(ctk.CTkToplevel):
         apply_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
+    
+    def cancel_changes(self):
+        try:
+            self.parent.settings["theme"] = self.initial_settings["theme"]
+            self.parent.settings["color_theme"] = self.initial_settings["color_theme"]
+            self.parent.settings["auto_check_hibp"] = self.initial_settings["auto_check_hibp"]
+            self.parent.settings["auto_lock_timeout"] = self.initial_settings["auto_lock_timeout"]
+            
+            ctk.set_appearance_mode(self.parent.settings["theme"])
+            self.parent.apply_color_theme(self.parent.settings["color_theme"])
+        except:
+            pass
+        
+        self.parent.settings_window = None
+        self.destroy()
     
     def toggle_master_password(self):
         if self.master_var.get():
@@ -1030,8 +1082,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.parent.toggle_custom_password()
         
         self.parent.save_settings()
-    
-    def cancel_and_close(self):
+        self.parent.settings_window = None
         self.destroy()
     
     def apply_and_close(self):
@@ -1040,7 +1091,10 @@ class SettingsWindow(ctk.CTkToplevel):
         self.parent.settings["theme"] = self.theme_var.get()
         self.parent.settings["color_theme"] = color_name
         self.parent.settings["auto_check_hibp"] = self.hibp_var.get()
-        self.parent.settings["auto_lock_timeout"] = self.timeout_var.get()
+        
+        timeout_map = {"откл": 0, "1 минута": 1, "5 минут": 5, "10 минут": 10, "15 минут": 15, "30 минут": 30}
+        timeout_val = timeout_map.get(self.timeout_var.get(), 5)
+        self.parent.settings["auto_lock_timeout"] = timeout_val
         
         # Handle master password
         if self.master_var.get():
@@ -1061,6 +1115,7 @@ class SettingsWindow(ctk.CTkToplevel):
         ctk.set_appearance_mode(self.parent.settings["theme"])
         self.parent.apply_color_theme(color_name)
         self.parent.save_settings()
+        self.parent.settings_window = None
         self.destroy()
 
 if __name__ == "__main__":
