@@ -13,18 +13,24 @@ APP_DIR = os.path.join(os.path.expanduser("~"), ".passworlds")
 os.makedirs(APP_DIR, exist_ok=True)
 CONFIG_FILE = os.path.join(APP_DIR, "settings.json")
 HISTORY_FILE = os.path.join(APP_DIR, "history.json")
+MASTER_FILE = os.path.join(APP_DIR, "master.json")
+VERSION = "1.0.2"
 
 class PasswordGeneratorApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("PassWorlds - Генератор паролей")
+        self.title(f"PassWorlds {VERSION}")
         self.geometry("550x750")
         self.resizable(False, False)
         
         self.password = ""
         self.password_history = []
         self.hibp_count = 0
+        self.is_locked = False
+        self.master_password_hash = ""
+        self.last_activity = datetime.now()
+        self.load_master_password()
         
         self.load_settings()
         self.load_history()
@@ -49,6 +55,41 @@ class PasswordGeneratorApp(ctk.CTk):
         self.apply_color_theme(self.settings["color_theme"])
         self.bind_shortcuts()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        if self.has_master_password():
+            self.withdraw()
+            self.show_startup_auth()
+    
+    def show_startup_auth(self):
+        login_win = ctk.CTkToplevel(self)
+        login_win.title("Вход")
+        login_win.geometry("350x200")
+        login_win.resizable(False, False)
+        login_win.transient(self)
+        
+        ctk.CTkLabel(login_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
+        
+        password_entry = ctk.CTkEntry(login_win, show="*", width=250, font=ctk.CTkFont(size=14))
+        password_entry.pack(pady=10)
+        
+        def try_login():
+            if self.verify_master_password(password_entry.get()):
+                self.is_locked = False
+                self.last_activity = datetime.now()
+                login_win.destroy()
+                self.deiconify()
+            else:
+                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+        
+        def exit_app():
+            login_win.destroy()
+            self.destroy()
+        
+        ctk.CTkButton(login_win, text="Войти", command=try_login, width=100).pack(pady=10)
+        ctk.CTkButton(login_win, text="Выход", command=exit_app, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        
+        password_entry.focus()
+        login_win.bind("<Return>", lambda e: try_login())
     
     def load_settings(self):
         color_eng_to_rus = {
@@ -68,8 +109,8 @@ class PasswordGeneratorApp(ctk.CTk):
             "use_lower": True,
             "use_digits": True,
             "use_special": True,
-            "master_password": "",
-            "auto_check_hibp": True
+            "auto_check_hibp": True,
+            "auto_lock_timeout": 5
         }
         
         if os.path.exists(CONFIG_FILE):
@@ -97,6 +138,83 @@ class PasswordGeneratorApp(ctk.CTk):
         with open(CONFIG_FILE, "w") as f:
             json.dump(settings_to_save, f, indent=2)
     
+    def load_master_password(self):
+        if os.path.exists(MASTER_FILE):
+            with open(MASTER_FILE, "r") as f:
+                data = json.load(f)
+                self.master_password_hash = data.get("hash", "")
+        else:
+            self.master_password_hash = ""
+    
+    def save_master_password(self, password):
+        if password:
+            hash_obj = hashlib.sha256(password.encode())
+            self.master_password_hash = hash_obj.hexdigest()
+            with open(MASTER_FILE, "w") as f:
+                json.dump({"hash": self.master_password_hash}, f)
+        else:
+            self.master_password_hash = ""
+            if os.path.exists(MASTER_FILE):
+                os.remove(MASTER_FILE)
+    
+    def verify_master_password(self, password):
+        if not self.master_password_hash:
+            return True
+        hash_obj = hashlib.sha256(password.encode())
+        return hash_obj.hexdigest() == self.master_password_hash
+    
+    def has_master_password(self):
+        return bool(self.master_password_hash)
+    
+    def check_auto_lock(self):
+        if not self.has_master_password() or self.is_locked:
+            return
+        timeout = self.settings.get("auto_lock_timeout", 5)
+        if timeout > 0:
+            elapsed = (datetime.now() - self.last_activity).total_seconds()
+            if elapsed > timeout * 60:
+                self.lock_app()
+    
+    def lock_app(self):
+        self.is_locked = True
+        self.withdraw()
+        self.show_login_screen()
+    
+    def show_login_screen(self):
+        login_win = ctk.CTkToplevel(self)
+        login_win.title("Вход")
+        login_win.geometry("350x200")
+        login_win.resizable(False, False)
+        login_win.transient(self)
+        
+        ctk.CTkLabel(login_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
+        
+        password_entry = ctk.CTkEntry(login_win, show="*", width=250, font=ctk.CTkFont(size=14))
+        password_entry.pack(pady=10)
+        
+        def try_login():
+            if self.verify_master_password(password_entry.get()):
+                self.is_locked = False
+                self.last_activity = datetime.now()
+                login_win.destroy()
+                self.deiconify()
+            else:
+                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+        
+        def cancel_login():
+            login_win.destroy()
+            if self.is_locked:
+                self.destroy()
+        
+        ctk.CTkButton(login_win, text="Войти", command=try_login, width=100).pack(pady=10)
+        ctk.CTkButton(login_win, text="Выход", command=cancel_login, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        
+        password_entry.focus()
+        login_win.bind("<Return>", lambda e: try_login())
+    
+    def reset_activity(self, event=None):
+        self.last_activity = datetime.now()
+    
     def apply_color_theme(self, color_name):
         color_map = {
             "Синий": ("#3b8ed0", "#1f6aa5"),
@@ -112,12 +230,16 @@ class PasswordGeneratorApp(ctk.CTk):
         }
         colors = color_map.get(color_name, color_map["Синий"])
         
-        for btn in [self.settings_btn, self.history_btn, self.generate_btn, self.copy_btn]:
+        buttons_to_update = [self.settings_btn, self.history_btn, self.generate_btn, self.copy_btn]
+        if hasattr(self, 'reset_btn'):
+            buttons_to_update.append(self.reset_btn)
+        
+        for btn in buttons_to_update:
             btn.configure(fg_color=colors[0], hover_color=colors[1])
         
         self.length_slider.configure(button_color=colors[0], button_hover_color=colors[1])
         
-        for cb in [self.uppercase_cb, self.lowercase_cb, self.digits_cb, self.special_cb]:
+        for cb in [self.uppercase_cb, self.lowercase_cb, self.digits_cb, self.special_cb, self.custom_password_cb]:
             cb.configure(fg_color=colors[0], hover_color=colors[1])
     
     def load_history(self):
@@ -133,12 +255,25 @@ class PasswordGeneratorApp(ctk.CTk):
             json.dump(self.password_history[-100:], f, indent=2)
     
     def setup_ui(self):
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(pady=15)
+        
+        try:
+            from PIL import Image
+            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "passworlds_icon.png")
+            if os.path.exists(icon_path):
+                icon_img = ctk.CTkImage(Image.open(icon_path), size=(60, 60))
+                icon_label = ctk.CTkLabel(header_frame, image=icon_img, text="")
+                icon_label.pack(side="left", padx=(0, 10))
+        except:
+            pass
+        
         self.title_label = ctk.CTkLabel(
-            self, 
-            text="PassWorlds - Генератор паролей",
+            header_frame, 
+            text="Генератор паролей",
             font=ctk.CTkFont(size=24, weight="bold")
         )
-        self.title_label.pack(pady=15)
+        self.title_label.pack(side="left")
         
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
         top_frame.pack(pady=5, padx=20, fill="x")
@@ -256,6 +391,16 @@ class PasswordGeneratorApp(ctk.CTk):
         )
         self.special_cb.pack(pady=3, anchor="w")
         
+        self.custom_password_var = ctk.BooleanVar(value=False)
+        self.custom_password_cb = ctk.CTkCheckBox(
+            self.checkbox_frame,
+            text="✎ Придумать свой пароль",
+            variable=self.custom_password_var,
+            font=ctk.CTkFont(size=14),
+            command=self.toggle_custom_password
+        )
+        self.custom_password_cb.pack(pady=3, anchor="w")
+        
         self.info_frame = ctk.CTkFrame(self)
         self.info_frame.pack(pady=10, padx=20, fill="x")
         
@@ -289,6 +434,16 @@ class PasswordGeneratorApp(ctk.CTk):
             font=ctk.CTkFont(size=12)
         )
         self.status_label.pack(pady=5)
+        
+        self.bind("<Motion>", self.reset_activity)
+        self.bind("<Key>", self.reset_activity)
+        self.bind("<Button>", self.reset_activity)
+        
+        self.check_lock_timer()
+    
+    def check_lock_timer(self):
+        self.check_auto_lock()
+        self.after(10000, self.check_lock_timer)
     
     def bind_shortcuts(self):
         try:
@@ -313,6 +468,75 @@ class PasswordGeneratorApp(ctk.CTk):
     
     def update_length_label(self, value):
         self.length_label.configure(text=f"Длина пароля: {int(value)}")
+    
+    def toggle_custom_password(self):
+        if self.custom_password_var.get():
+            self.length_slider.configure(state="disabled")
+            self.uppercase_cb.configure(state="disabled")
+            self.lowercase_cb.configure(state="disabled")
+            self.digits_cb.configure(state="disabled")
+            self.special_cb.configure(state="disabled")
+            self.generate_btn.configure(state="disabled")
+            self.password_entry.configure(state="normal")
+            self.password_entry.delete(0, "end")
+            self.password_entry.configure(placeholder_text="Введите свой пароль")
+            self.password_entry.unbind("<KeyRelease>" if hasattr(self, '_key_bind_id') else "")
+            self._key_bind_id = self.password_entry.bind("<KeyRelease>", lambda e: self.check_custom_password_strength())
+            self.copy_btn.configure(state="normal")
+        else:
+            self.length_slider.configure(state="normal")
+            self.uppercase_cb.configure(state="normal")
+            self.lowercase_cb.configure(state="normal")
+            self.digits_cb.configure(state="normal")
+            self.special_cb.configure(state="normal")
+            self.generate_btn.configure(state="normal")
+            self.password = ""
+            self.password_entry.configure(state="normal")
+            self.password_entry.delete(0, "end")
+            self.password_entry.configure(state="readonly", placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G")
+            self.strength_label.configure(text="")
+            self.hibp_label.configure(text="")
+            self.entropy_label.configure(text="")
+            self.copy_btn.configure(state="normal")
+    
+    def check_custom_password_strength(self):
+        password = self.password_entry.get()
+        if not password:
+            self.strength_label.configure(text="")
+            self.hibp_label.configure(text="")
+            self.entropy_label.configure(text="")
+            return
+        
+        self.password = password
+        
+        strength = self.check_strength(password)
+        self.strength_label.configure(text=f"Надёжность: {strength}")
+        
+        if strength == "Слабый":
+            self.strength_label.configure(text_color="red")
+        elif strength == "Средний":
+            self.strength_label.configure(text_color="orange")
+        else:
+            self.strength_label.configure(text_color="green")
+        
+        length = len(password)
+        chars = 0
+        if any(c in string.ascii_uppercase for c in password):
+            chars += 26
+        if any(c in string.ascii_lowercase for c in password):
+            chars += 26
+        if any(c in string.digits for c in password):
+            chars += 10
+        if any(c in string.punctuation for c in password):
+            chars += 32
+        
+        if chars > 0:
+            import math
+            entropy = length * math.log2(chars)
+            self.entropy_label.configure(text=f"Энтропия: {entropy:.1f} бит")
+        
+        if self.settings.get("auto_check_hibp", True):
+            self.check_hibp()
     
     def generate_password(self):
         length = int(self.length_slider.get())
@@ -351,14 +575,6 @@ class PasswordGeneratorApp(ctk.CTk):
         
         entropy = self.calculate_entropy(length, chars)
         self.entropy_label.configure(text=f"Энтропия: {entropy:.1f} бит")
-        
-        self.password_history.insert(0, {
-            "password": self.password,
-            "length": length,
-            "strength": strength,
-            "timestamp": datetime.now().isoformat()
-        })
-        self.save_history()
         
         if self.settings.get("auto_check_hibp", True):
             self.check_hibp()
@@ -431,12 +647,86 @@ class PasswordGeneratorApp(ctk.CTk):
             pyperclip.copy(self.password)
             self.status_label.configure(text="Скопировано в буфер обмена!")
             self.after(2000, lambda: self.status_label.configure(text=""))
+            
+            # Save to history only if not already saved (check last 10)
+            already_saved = any(p["password"] == self.password for p in self.password_history[:10])
+            if not already_saved:
+                strength = self.check_strength(self.password)
+                self.password_history.insert(0, {
+                    "password": self.password,
+                    "length": len(self.password),
+                    "strength": strength,
+                    "timestamp": datetime.now().isoformat()
+                })
+                self.save_history()
     
     def open_history_window(self):
-        HistoryWindow(self, self.password_history)
+        self.reset_activity()
+        if self.is_locked:
+            return
+        if self.has_master_password():
+            self.show_history_auth()
+        else:
+            HistoryWindow(self, self.password_history)
+    
+    def show_history_auth(self):
+        auth_win = ctk.CTkToplevel(self)
+        auth_win.title("Подтверждение")
+        auth_win.geometry("300x150")
+        auth_win.resizable(False, False)
+        auth_win.transient(self)
+        
+        ctk.CTkLabel(auth_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14)).pack(pady=20)
+        
+        password_entry = ctk.CTkEntry(auth_win, show="*", width=200)
+        password_entry.pack(pady=10)
+        
+        def try_show():
+            if self.verify_master_password(password_entry.get()):
+                auth_win.destroy()
+                self.last_activity = datetime.now()
+                HistoryWindow(self, self.password_history)
+            else:
+                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+        
+        ctk.CTkButton(auth_win, text="Показать", command=try_show, width=100).pack(pady=10)
+        password_entry.focus()
+        auth_win.bind("<Return>", lambda e: try_show())
     
     def open_settings_window(self):
         SettingsWindow(self)
+    
+    def reset_to_defaults(self):
+        self.settings = {
+            "theme": "light",
+            "color_theme": "Синий",
+            "default_length": 16,
+            "use_upper": True,
+            "use_lower": True,
+            "use_digits": True,
+            "use_special": True,
+            "auto_check_hibp": True
+        }
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
+        self.apply_color_theme("Синий")
+        self.save_settings()
+        
+        self.length_slider.set(16)
+        self.uppercase_var.set(True)
+        self.lowercase_var.set(True)
+        self.digits_var.set(True)
+        self.special_var.set(True)
+        
+        self.password_entry.configure(state="normal")
+        self.password_entry.delete(0, "end")
+        self.password_entry.configure(state="readonly")
+        self.password = ""
+        self.copy_btn.configure(state="disabled")
+        
+        self.strength_label.configure(text="")
+        self.hibp_label.configure(text="")
+        self.entropy_label.configure(text="")
 
 class HistoryWindow(ctk.CTkToplevel):
     def __init__(self, parent, history):
@@ -528,8 +818,8 @@ class SettingsWindow(ctk.CTkToplevel):
         super().__init__(parent)
         
         self.title("Настройки")
-        self.geometry("350x350")
-        self.resizable(False, False)
+        self.geometry("380x520")
+        self.resizable(True, True)
         
         self.parent = parent
         self.color_buttons = []
@@ -556,7 +846,16 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkLabel(color_frame, text="Цвет кнопок:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
         
-        self.color_var = ctk.StringVar(value=self.parent.settings["color_theme"])
+        color_eng_to_rus = {
+            "blue": "Синий", "cyan": "Голубой", "red": "Красный",
+            "pink": "Розовый", "green": "Зелёный", "lime": "Салатовый", "purple": "Фиолетовый"
+        }
+        saved_color = self.parent.settings.get("color_theme", "Синий")
+        if saved_color in color_eng_to_rus:
+            saved_color = color_eng_to_rus[saved_color]
+        elif saved_color not in ["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"]:
+            saved_color = "Синий"
+        self.color_var = ctk.StringVar(value=saved_color)
         color_menu = ctk.CTkOptionMenu(
             color_frame,
             values=["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"],
@@ -583,16 +882,16 @@ class SettingsWindow(ctk.CTkToplevel):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=20, fill="x", padx=20)
         
-        reset_btn = ctk.CTkButton(
+        apply_btn = ctk.CTkButton(
             btn_frame,
-            text="Сброс",
-            command=self.reset_settings,
+            text="Применить",
+            command=self.apply_and_close,
             width=90,
             height=40,
-            fg_color="gray",
-            hover_color="darkgray"
+            fg_color="#27ae60",
+            hover_color="#1e8449"
         )
-        reset_btn.pack(side="left", padx=5, fill="x", expand=True)
+        apply_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         cancel_btn = ctk.CTkButton(
             btn_frame,
@@ -605,15 +904,16 @@ class SettingsWindow(ctk.CTkToplevel):
         )
         cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
         
-        apply_btn = ctk.CTkButton(
+        reset_btn = ctk.CTkButton(
             btn_frame,
-            text="Применить",
-            command=self.apply_and_close,
+            text="Сброс",
+            command=self.reset_settings,
             width=90,
             height=40,
-            fg_color="#27ae60",
-            hover_color="#1e8449"
+            fg_color="gray",
+            hover_color="darkgray"
         )
+        reset_btn.pack(side="left", padx=5, fill="x", expand=True)
         apply_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
@@ -644,10 +944,33 @@ class SettingsWindow(ctk.CTkToplevel):
             self.parent.apply_color_theme(color_name)
     
     def reset_settings(self):
-        self.theme_var.set(self.parent.settings["theme"])
-        self.color_var.set(self.parent.settings["color_theme"])
-        self.hibp_var.set(self.parent.settings["auto_check_hibp"])
-        self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
+        DEFAULT_THEME = "light"
+        DEFAULT_COLOR = "Синий"
+        
+        self.theme_var.set(DEFAULT_THEME)
+        self.color_var.set(DEFAULT_COLOR)
+        self.hibp_var.set(True)
+        self.change_color(DEFAULT_COLOR, apply_to_parent=False)
+        
+        self.parent.settings["theme"] = DEFAULT_THEME
+        self.parent.settings["color_theme"] = DEFAULT_COLOR
+        self.parent.settings["auto_check_hibp"] = True
+        self.parent.settings["use_upper"] = True
+        self.parent.settings["use_lower"] = True
+        self.parent.settings["use_digits"] = True
+        self.parent.settings["use_special"] = True
+        
+        ctk.set_appearance_mode(DEFAULT_THEME)
+        self.parent.apply_color_theme(DEFAULT_COLOR)
+        
+        self.parent.uppercase_var.set(True)
+        self.parent.lowercase_var.set(True)
+        self.parent.digits_var.set(True)
+        self.parent.special_var.set(True)
+        self.parent.custom_password_var.set(False)
+        self.parent.toggle_custom_password()
+        
+        self.parent.save_settings()
     
     def cancel_and_close(self):
         self.destroy()
