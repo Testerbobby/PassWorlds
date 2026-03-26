@@ -62,13 +62,14 @@ class PasswordGeneratorApp(ctk.CTk):
             self.show_startup_auth()
     
     def show_startup_auth(self):
+        t = self.t
         login_win = ctk.CTkToplevel(self)
-        login_win.title("Вход")
+        login_win.title(t['login_title'])
         login_win.geometry("350x200")
         login_win.resizable(False, False)
         login_win.transient(self)
         
-        ctk.CTkLabel(login_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
+        ctk.CTkLabel(login_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
         password_entry = ctk.CTkEntry(login_win, show="*", width=250, font=ctk.CTkFont(size=14))
         password_entry.pack(pady=10)
@@ -80,14 +81,14 @@ class PasswordGeneratorApp(ctk.CTk):
                 login_win.destroy()
                 self.deiconify()
             else:
-                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+                ctk.CTkMessagebox(title=t['error'], message=t['wrong_password'], icon="cancel")
         
         def exit_app():
             login_win.destroy()
             self.destroy()
         
-        ctk.CTkButton(login_win, text="Войти", command=try_login, width=100).pack(pady=10)
-        ctk.CTkButton(login_win, text="Выход", command=exit_app, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100).pack(pady=10)
+        ctk.CTkButton(login_win, text=t['exit'], command=exit_app, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
         
         password_entry.focus()
         login_win.bind("<Return>", lambda e: try_login())
@@ -111,7 +112,8 @@ class PasswordGeneratorApp(ctk.CTk):
             "use_digits": True,
             "use_special": True,
             "auto_check_hibp": True,
-            "auto_lock_timeout": 0
+            "auto_lock_timeout": 0,
+            "language": "ru"
         }
         
         if os.path.exists(CONFIG_FILE):
@@ -122,6 +124,148 @@ class PasswordGeneratorApp(ctk.CTk):
                 self.settings = {**default_settings, **loaded}
         else:
             self.settings = default_settings
+        
+        self.translations = {
+            "ru": {
+                "app_title": "PassWorlds",
+                "generate": "Сгенерировать",
+                "copy": "Копировать",
+                "settings": "Настройки",
+                "history": "История",
+                "length": "Длина пароля",
+                "uppercase": "Заглавные (A-Z)",
+                "lowercase": "Строчные (a-z)",
+                "digits": "Цифры (0-9)",
+                "special": "Спецсимволы (!@#$%)",
+                "custom_password": "Придумать свой пароль",
+                "strength": "Надёжность",
+                "weak": "Слабый",
+                "medium": "Средний",
+                "strong": "Надёжный",
+                "very_strong": "Очень надёжный",
+                "entropy": "Энтропия",
+                "bits": "бит",
+                "not_found_leaks": "✓ Не найден в утечках",
+                "found_leaks": "⚠️ Найден в утечках",
+                "copied": "Скопировано в буфер обмена!",
+                "enter_password": "Нажмите 'Сгенерировать' или Ctrl+G",
+                "enter_custom_password": "Введите свой пароль",
+                "password_generator": "Генератор паролей",
+                "settings_window": "Настройки",
+                "theme": "Тема",
+                "color_buttons": "Цвет кнопок",
+                "options": "Опции",
+                "auto_check_hibp": "Автопроверка утечек (Have I Been Pwned)",
+                "language": "Язык",
+                "master_password": "Мастер-пароль",
+                "enable_master_password": "Включить мастер-пароль",
+                "create_password": "Придумайте пароль",
+                "repeat_password": "Повторите пароль",
+                "new_password": "Введите новый пароль или оставьте пустым",
+                "repeat_new_password": "Повторите новый пароль",
+                "auto_lock": "Автоблокировка",
+                "timeout_off": "откл",
+                "timeout_1": "1 минута",
+                "timeout_5": "5 минут",
+                "timeout_10": "10 минут",
+                "timeout_15": "15 минут",
+                "timeout_30": "30 минут",
+                "apply": "Применить",
+                "cancel": "Отмена",
+                "reset": "Сброс",
+                "login_title": "Вход",
+                "confirm_title": "Подтверждение",
+                "enter_master_password": "Введите мастер-пароль:",
+                "login": "Войти",
+                "exit": "Выход",
+                "show": "Показать",
+                "error": "Ошибка",
+                "wrong_password": "Неверный пароль!",
+                "passwords_dont_match": "Пароли не совпадают!",
+                "history_window": "История паролей",
+                "clear_history": "Очистить историю",
+                "export_history": "Экспорт в файл",
+                "history_empty": "История пуста",
+                "confirm_clear": "Введите 'да' для подтверждения:",
+                "confirm_clear_title": "Очистить историю",
+                "export_success": "Успех",
+                "export_error": "Ошибка",
+                "success": "Успех",
+                "russian": "Русский",
+                "english": "English"
+            },
+            "en": {
+                "app_title": "PassWorlds",
+                "generate": "Generate",
+                "copy": "Copy",
+                "settings": "Settings",
+                "history": "History",
+                "length": "Password length",
+                "uppercase": "Uppercase (A-Z)",
+                "lowercase": "Lowercase (a-z)",
+                "digits": "Digits (0-9)",
+                "special": "Special (!@#$%)",
+                "custom_password": "Use custom password",
+                "strength": "Strength",
+                "weak": "Weak",
+                "medium": "Medium",
+                "strong": "Strong",
+                "very_strong": "Very Strong",
+                "entropy": "Entropy",
+                "bits": "bits",
+                "not_found_leaks": "✓ Not found in leaks",
+                "found_leaks": "⚠️ Found in leaks",
+                "copied": "Copied to clipboard!",
+                "enter_password": "Press 'Generate' or Ctrl+G",
+                "enter_custom_password": "Enter your password",
+                "password_generator": "Password Generator",
+                "settings_window": "Settings",
+                "theme": "Theme",
+                "color_buttons": "Button color",
+                "options": "Options",
+                "auto_check_hibp": "Auto check leaks (Have I Been Pwned)",
+                "language": "Language",
+                "master_password": "Master password",
+                "enable_master_password": "Enable master password",
+                "create_password": "Create password",
+                "repeat_password": "Repeat password",
+                "new_password": "Enter new password or leave empty",
+                "repeat_new_password": "Repeat new password",
+                "auto_lock": "Auto lock",
+                "timeout_off": "off",
+                "timeout_1": "1 minute",
+                "timeout_5": "5 minutes",
+                "timeout_10": "10 minutes",
+                "timeout_15": "15 minutes",
+                "timeout_30": "30 minutes",
+                "apply": "Apply",
+                "cancel": "Cancel",
+                "reset": "Reset",
+                "login_title": "Login",
+                "confirm_title": "Confirmation",
+                "enter_master_password": "Enter master password:",
+                "login": "Login",
+                "exit": "Exit",
+                "show": "Show",
+                "error": "Error",
+                "wrong_password": "Wrong password!",
+                "passwords_dont_match": "Passwords don't match!",
+                "history_window": "Password History",
+                "clear_history": "Clear history",
+                "export_history": "Export to file",
+                "history_empty": "History is empty",
+                "confirm_clear": "Enter 'yes' to confirm:",
+                "confirm_clear_title": "Clear History",
+                "export_success": "Success",
+                "export_error": "Error",
+                "success": "Success",
+                "russian": "Русский",
+                "english": "English"
+            }
+        }
+        
+        lang = self.settings.get("language", "ru")
+        self.t = self.translations.get(lang, self.translations["ru"])
     
     def save_settings(self):
         color_rus_to_eng = {
@@ -182,13 +326,14 @@ class PasswordGeneratorApp(ctk.CTk):
         self.show_login_screen()
     
     def show_login_screen(self):
+        t = self.t
         login_win = ctk.CTkToplevel(self)
-        login_win.title("Вход")
+        login_win.title(t['login_title'])
         login_win.geometry("350x200")
         login_win.resizable(False, False)
         login_win.transient(self)
         
-        ctk.CTkLabel(login_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
+        ctk.CTkLabel(login_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
         password_entry = ctk.CTkEntry(login_win, show="*", width=250, font=ctk.CTkFont(size=14))
         password_entry.pack(pady=10)
@@ -200,15 +345,15 @@ class PasswordGeneratorApp(ctk.CTk):
                 login_win.destroy()
                 self.deiconify()
             else:
-                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+                ctk.CTkMessagebox(title=t['error'], message=t['wrong_password'], icon="cancel")
         
         def cancel_login():
             login_win.destroy()
             if self.is_locked:
                 self.destroy()
         
-        ctk.CTkButton(login_win, text="Войти", command=try_login, width=100).pack(pady=10)
-        ctk.CTkButton(login_win, text="Выход", command=cancel_login, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100).pack(pady=10)
+        ctk.CTkButton(login_win, text=t['exit'], command=cancel_login, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
         
         password_entry.focus()
         login_win.bind("<Return>", lambda e: try_login())
@@ -271,7 +416,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.title_label = ctk.CTkLabel(
             header_frame, 
-            text="Генератор паролей",
+            text=self.t['password_generator'],
             font=ctk.CTkFont(size=24, weight="bold")
         )
         self.title_label.pack(side="left")
@@ -281,7 +426,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.settings_btn = ctk.CTkButton(
             top_frame,
-            text="Настройки",
+            text=self.t['settings'],
             width=90,
             height=30,
             font=ctk.CTkFont(size=12),
@@ -291,7 +436,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.history_btn = ctk.CTkButton(
             top_frame,
-            text="История",
+            text=self.t['history'],
             width=80,
             height=30,
             font=ctk.CTkFont(size=12),
@@ -306,7 +451,7 @@ class PasswordGeneratorApp(ctk.CTk):
             self.password_frame,
             font=ctk.CTkFont(size=18),
             height=50,
-            placeholder_text="Нажмите 'Сгенерировать' или Ctrl+G",
+            placeholder_text=self.t['enter_password'],
             state="readonly"
         )
         self.password_entry.pack(pady=10, padx=10, fill="x")
@@ -316,7 +461,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.generate_btn = ctk.CTkButton(
             self.button_frame,
-            text="Сгенерировать (Ctrl+G)",
+            text=self.t['generate'],
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
             command=self.generate_password
@@ -325,7 +470,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.copy_btn = ctk.CTkButton(
             self.button_frame,
-            text="Копировать",
+            text=self.t['copy'],
             font=ctk.CTkFont(size=14),
             height=40,
             command=self.copy_password,
@@ -338,7 +483,7 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.length_label = ctk.CTkLabel(
             self.settings_frame, 
-            text=f"Длина пароля: {self.settings['default_length']}", 
+            text=f"{self.t['length']}: {self.settings['default_length']}", 
             font=ctk.CTkFont(size=14)
         )
         self.length_label.pack(pady=(15, 5))
@@ -359,7 +504,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.uppercase_var = ctk.BooleanVar(value=self.settings["use_upper"])
         self.uppercase_cb = ctk.CTkCheckBox(
             self.checkbox_frame,
-            text="A-Z Заглавные",
+            text=self.t['uppercase'],
             variable=self.uppercase_var,
             font=ctk.CTkFont(size=14)
         )
@@ -368,7 +513,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.lowercase_var = ctk.BooleanVar(value=self.settings["use_lower"])
         self.lowercase_cb = ctk.CTkCheckBox(
             self.checkbox_frame,
-            text="a-z Строчные",
+            text=self.t['lowercase'],
             variable=self.lowercase_var,
             font=ctk.CTkFont(size=14)
         )
@@ -377,7 +522,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.digits_var = ctk.BooleanVar(value=self.settings["use_digits"])
         self.digits_cb = ctk.CTkCheckBox(
             self.checkbox_frame,
-            text="0-9 Цифры",
+            text=self.t['digits'],
             variable=self.digits_var,
             font=ctk.CTkFont(size=14)
         )
@@ -386,7 +531,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.special_var = ctk.BooleanVar(value=self.settings["use_special"])
         self.special_cb = ctk.CTkCheckBox(
             self.checkbox_frame,
-            text="!@#$%^&* Спецсимволы",
+            text=self.t['special'],
             variable=self.special_var,
             font=ctk.CTkFont(size=14)
         )
@@ -395,7 +540,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.custom_password_var = ctk.BooleanVar(value=False)
         self.custom_password_cb = ctk.CTkCheckBox(
             self.checkbox_frame,
-            text="✎ Придумать свой пароль",
+            text=self.t['custom_password'],
             variable=self.custom_password_var,
             font=ctk.CTkFont(size=14),
             command=self.toggle_custom_password
@@ -442,6 +587,22 @@ class PasswordGeneratorApp(ctk.CTk):
         
         self.check_lock_timer()
     
+    def refresh_ui_text(self):
+        t = self.t
+        self.title(f"{t['app_title']} {VERSION}")
+        self.title_label.configure(text=t['password_generator'])
+        self.settings_btn.configure(text=t['settings'])
+        self.history_btn.configure(text=t['history'])
+        self.generate_btn.configure(text=t['generate'])
+        self.copy_btn.configure(text=t['copy'])
+        self.password_entry.configure(placeholder_text=t['enter_password'])
+        self.length_label.configure(text=f"{t['length']}: {int(self.length_slider.get())}")
+        self.uppercase_cb.configure(text=t['uppercase'])
+        self.lowercase_cb.configure(text=t['lowercase'])
+        self.digits_cb.configure(text=t['digits'])
+        self.special_cb.configure(text=t['special'])
+        self.custom_password_cb.configure(text=t['custom_password'])
+    
     def check_lock_timer(self):
         self.check_auto_lock()
         self.after(10000, self.check_lock_timer)
@@ -468,7 +629,7 @@ class PasswordGeneratorApp(ctk.CTk):
         self.destroy()
     
     def update_length_label(self, value):
-        self.length_label.configure(text=f"Длина пароля: {int(value)}")
+        self.length_label.configure(text=f"{self.t['length']}: {int(value)}")
     
     def toggle_custom_password(self):
         if self.custom_password_var.get():
@@ -671,6 +832,7 @@ class PasswordGeneratorApp(ctk.CTk):
             HistoryWindow(self, self.password_history)
     
     def show_history_auth(self):
+        t = self.t
         color_map = {
             "Синий": ("#3b8ed0", "#1f6aa5"),
             "Голубой": ("#00a8cc", "#007a99"),
@@ -684,12 +846,12 @@ class PasswordGeneratorApp(ctk.CTk):
         colors = color_map.get(current_color, color_map["Синий"])
         
         auth_win = ctk.CTkToplevel(self)
-        auth_win.title("Подтверждение")
+        auth_win.title(t['confirm_title'])
         auth_win.geometry("320x180")
         auth_win.resizable(False, False)
         auth_win.transient(self)
         
-        ctk.CTkLabel(auth_win, text="Введите мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
+        ctk.CTkLabel(auth_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
         password_entry = ctk.CTkEntry(auth_win, show="*", width=200, font=ctk.CTkFont(size=14))
         password_entry.pack(pady=10)
@@ -700,17 +862,18 @@ class PasswordGeneratorApp(ctk.CTk):
                 self.last_activity = datetime.now()
                 HistoryWindow(self, self.password_history)
             else:
-                ctk.CTkMessagebox(title="Ошибка", message="Неверный пароль!", icon="cancel")
+                ctk.CTkMessagebox(title=t['error'], message=t['wrong_password'], icon="cancel")
         
         ctk.CTkButton(
             auth_win, 
-            text="Показать", 
+            text=t['show'], 
             command=try_show, 
             width=120,
             height=35,
             fg_color=colors[0],
             hover_color=colors[1]
         ).pack(pady=10)
+        
         password_entry.focus()
         auth_win.bind("<Return>", lambda e: try_show())
     
@@ -757,11 +920,13 @@ class HistoryWindow(ctk.CTkToplevel):
     def __init__(self, parent, history):
         super().__init__(parent)
         
-        self.title("История паролей")
+        t = parent.t
+        self.title(t['history_window'])
         self.geometry("500x400")
         self.resizable(True, True)
         
         self.history = history
+        self.t = t
         
         self.textbox = ctk.CTkTextbox(self, font=ctk.CTkFont(size=12))
         self.textbox.pack(pady=10, padx=10, fill="both", expand=True)
@@ -771,7 +936,7 @@ class HistoryWindow(ctk.CTkToplevel):
         
         clear_btn = ctk.CTkButton(
             btn_frame,
-            text="Очистить историю",
+            text=t['clear_history'],
             command=self.clear_history,
             fg_color="red",
             hover_color="darkred"
@@ -780,7 +945,7 @@ class HistoryWindow(ctk.CTkToplevel):
         
         export_btn = ctk.CTkButton(
             btn_frame,
-            text="Экспорт в файл",
+            text=t['export_history'],
             command=self.export_history
         )
         export_btn.pack(side="left", padx=5)
@@ -789,23 +954,26 @@ class HistoryWindow(ctk.CTkToplevel):
     
     def update_display(self):
         self.textbox.delete("1.0", "end")
+        t = self.t
         
         if not self.history:
-            self.textbox.insert("1.0", "История пуста")
+            self.textbox.insert("1.0", t['history_empty'])
             return
         
         for i, item in enumerate(self.history[:50], 1):
             ts = datetime.fromisoformat(item["timestamp"]).strftime("%d.%m.%Y %H:%M")
-            strength_color = {"Слабый": "🔴", "Средний": "🟡", "Надёжный": "🟢"}.get(item["strength"], "")
-            self.textbox.insert("end", f"{i}. [{ts}] {strength_color} ({item['length']} символов)\n")
+            strength_map = {t['weak']: "🔴", t['medium']: "🟡", t['strong']: "🟢"}
+            strength_color = strength_map.get(item["strength"], "")
+            self.textbox.insert("end", f"{i}. [{ts}] {strength_color} ({item['length']} chars)\n")
             self.textbox.insert("end", f"   {item['password']}\n\n")
     
     def clear_history(self):
+        t = self.t
         result = ctk.CTkInputDialog(
-            text="Введите 'да' для подтверждения:",
-            title="Очистить историю"
+            text=t['confirm_clear'],
+            title=t['confirm_clear_title']
         ).get_input()
-        if result and result.lower() == "да":
+        if result and result.lower() == "да" or result and result.lower() == "yes":
             self.history.clear()
             parent = self.master
             parent.password_history = []
@@ -813,28 +981,29 @@ class HistoryWindow(ctk.CTkToplevel):
             self.update_display()
     
     def export_history(self):
+        t = self.t
         if not self.history:
             return
         
         filename = f"passworlds_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         try:
             with open(filename, "w", encoding="utf-8") as f:
-                f.write("PassWorlds - История экспорта\n")
-                f.write(f"Дата экспорта: {datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
+                f.write(f"PassWorlds - {t['history_window']}\n")
+                f.write(f"Export date: {datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
                 f.write("=" * 50 + "\n\n")
                 for i, item in enumerate(self.history, 1):
                     ts = datetime.fromisoformat(item["timestamp"]).strftime("%d.%m.%Y %H:%M")
-                    f.write(f"{i}. [{ts}] - {item['strength']} ({item['length']} символов)\n")
+                    f.write(f"{i}. [{ts}] - {item['strength']} ({item['length']} chars)\n")
                     f.write(f"   {item['password']}\n\n")
             ctk.CTkMessagebox(
-                title="Успех",
-                message=f"История экспортирована в {filename}",
+                title=t['success'],
+                message=f"{t['history_window']} exported to {filename}",
                 icon="check"
             )
         except Exception as e:
             ctk.CTkMessagebox(
-                title="Ошибка",
-                message=f"Ошибка экспорта: {str(e)}",
+                title=t['error'],
+                message=f"{t['export_error']}: {str(e)}",
                 icon="cancel"
             )
 
@@ -842,8 +1011,9 @@ class SettingsWindow(ctk.CTkToplevel):
     def __init__(self, parent):
         super().__init__(parent)
         
-        self.title("Настройки")
-        self.geometry("380x600")
+        t = parent.t
+        self.title(t['settings_window'])
+        self.geometry("380x720")
         self.resizable(False, False)
         
         self.parent = parent
@@ -854,30 +1024,50 @@ class SettingsWindow(ctk.CTkToplevel):
             "color_theme": parent.settings["color_theme"],
             "auto_check_hibp": parent.settings.get("auto_check_hibp", True),
             "auto_lock_timeout": parent.settings.get("auto_lock_timeout", 5),
-            "has_master": parent.has_master_password()
+            "has_master": parent.has_master_password(),
+            "language": parent.settings.get("language", "ru")
         }
         
         self.setup_ui()
     
     def setup_ui(self):
-        theme_frame = ctk.CTkFrame(self)
-        theme_frame.pack(pady=10, padx=20, fill="x")
+        t = self.parent.t
         
-        ctk.CTkLabel(theme_frame, text="Тема:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
+        self.theme_label = ctk.CTkLabel(self, text=t['theme'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.theme_label.pack(pady=(10, 2))
+        
+        theme_frame = ctk.CTkFrame(self)
+        theme_frame.pack(pady=5, padx=20, fill="x")
         
         self.theme_var = ctk.StringVar(value=self.parent.settings["theme"])
-        theme_menu = ctk.CTkOptionMenu(
-            theme_frame,
-            values=["dark", "light", "system"],
-            variable=self.theme_var
-        )
-        self.color_buttons.append(theme_menu)
-        theme_menu.pack(pady=2, padx=20, fill="x")
+        ru_themes = ["light", "dark", "system"]
+        ru_theme_labels = ["Светлая", "Тёмная", "Системная"]
+        en_themes = ["light", "dark", "system"]
+        en_theme_labels = ["Light", "Dark", "System"]
+        
+        current_lang = self.parent.settings.get("language", "ru")
+        if current_lang == "en":
+            self.theme_menu = ctk.CTkOptionMenu(
+                theme_frame,
+                values=en_theme_labels,
+                variable=self.theme_var,
+                command=self.change_theme
+            )
+        else:
+            self.theme_menu = ctk.CTkOptionMenu(
+                theme_frame,
+                values=ru_theme_labels,
+                variable=self.theme_var,
+                command=self.change_theme
+            )
+        self.color_buttons.append(self.theme_menu)
+        self.theme_menu.pack(pady=2, padx=20, fill="x")
+        
+        self.color_label = ctk.CTkLabel(self, text=t['color_buttons'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.color_label.pack(pady=(10, 2))
         
         color_frame = ctk.CTkFrame(self)
-        color_frame.pack(pady=10, padx=20, fill="x")
-        
-        ctk.CTkLabel(color_frame, text="Цвет кнопок:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
+        color_frame.pack(pady=5, padx=20, fill="x")
         
         color_eng_to_rus = {
             "blue": "Синий", "cyan": "Голубой", "red": "Красный",
@@ -888,48 +1078,81 @@ class SettingsWindow(ctk.CTkToplevel):
             saved_color = color_eng_to_rus[saved_color]
         elif saved_color not in ["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"]:
             saved_color = "Синий"
-        self.color_var = ctk.StringVar(value=saved_color)
-        color_menu = ctk.CTkOptionMenu(
+        
+        ru_colors = ["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"]
+        en_colors = ["Blue", "Cyan", "Red", "Pink", "Green", "Lime", "Purple"]
+        
+        current_lang = self.parent.settings.get("language", "ru")
+        if current_lang == "en":
+            color_map = {"Синий": "Blue", "Голубой": "Cyan", "Красный": "Red", "Розовый": "Pink", "Зелёный": "Green", "Салатовый": "Lime", "Фиолетовый": "Purple"}
+            display_color = color_map.get(saved_color, "Blue")
+            color_values = en_colors
+        else:
+            display_color = saved_color
+            color_values = ru_colors
+        
+        self.color_var = ctk.StringVar(value=display_color)
+        self.color_menu = ctk.CTkOptionMenu(
             color_frame,
-            values=["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"],
+            values=color_values,
             variable=self.color_var,
             command=self.change_color
         )
-        self.color_buttons.append(color_menu)
-        color_menu.pack(pady=2, padx=20, fill="x")
+        self.color_buttons.append(self.color_menu)
+        self.color_menu.pack(pady=2, padx=20, fill="x")
+        
+        self.options_label = ctk.CTkLabel(self, text=t['options'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.options_label.pack(pady=(10, 2))
         
         options_frame = ctk.CTkFrame(self)
-        options_frame.pack(pady=10, padx=20, fill="x")
-        
-        ctk.CTkLabel(options_frame, text="Опции:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
+        options_frame.pack(pady=5, padx=20, fill="x")
         
         self.hibp_var = ctk.BooleanVar(value=self.parent.settings.get("auto_check_hibp", True))
-        hibp_cb = ctk.CTkCheckBox(
+        self.hibp_cb = ctk.CTkCheckBox(
             options_frame,
-            text="Автопроверка утечек (Have I Been Pwned)",
+            text=t['auto_check_hibp'],
             variable=self.hibp_var
         )
-        self.color_buttons.append(hibp_cb)
-        hibp_cb.pack(pady=2, anchor="w", padx=10)
+        self.color_buttons.append(self.hibp_cb)
+        self.hibp_cb.pack(pady=2, anchor="w", padx=10)
+        
+        self.lang_label = ctk.CTkLabel(self, text=t['language'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.lang_label.pack(pady=(10, 2))
+        
+        lang_frame = ctk.CTkFrame(self)
+        lang_frame.pack(pady=5, padx=20, fill="x")
+        
+        lang_values = [t['russian'], t['english']]
+        current_lang = t['russian'] if self.parent.settings.get("language", "ru") == "ru" else t['english']
+        self.lang_var = ctk.StringVar(value=current_lang)
+        lang_menu = ctk.CTkOptionMenu(
+            lang_frame,
+            values=lang_values,
+            variable=self.lang_var,
+            command=self.change_language
+        )
+        self.color_buttons.append(lang_menu)
+        lang_menu.pack(pady=2, padx=20, fill="x")
+        
+        self.master_label = ctk.CTkLabel(self, text=t['master_password'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.master_label.pack(pady=(10, 2))
         
         master_frame = ctk.CTkFrame(self)
-        master_frame.pack(pady=10, padx=20, fill="x")
-        
-        ctk.CTkLabel(master_frame, text="Мастер-пароль:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
+        master_frame.pack(pady=5, padx=20, fill="x")
         
         self.master_var = ctk.BooleanVar(value=self.parent.has_master_password())
-        master_cb = ctk.CTkCheckBox(
+        self.master_cb = ctk.CTkCheckBox(
             master_frame,
-            text="Включить мастер-пароль",
+            text=t['enable_master_password'],
             variable=self.master_var,
             command=self.toggle_master_password
         )
-        self.color_buttons.append(master_cb)
-        master_cb.pack(pady=2, anchor="w", padx=10)
+        self.color_buttons.append(self.master_cb)
+        self.master_cb.pack(pady=2, anchor="w", padx=10)
         
         self.master_entry = ctk.CTkEntry(
             master_frame,
-            placeholder_text="Придумайте пароль",
+            placeholder_text=t['create_password'],
             show="*",
             state="disabled"
         )
@@ -937,31 +1160,33 @@ class SettingsWindow(ctk.CTkToplevel):
         
         self.master_entry_confirm = ctk.CTkEntry(
             master_frame,
-            placeholder_text="Повторите пароль",
+            placeholder_text=t['repeat_password'],
             show="*",
             state="disabled"
         )
         self.master_entry_confirm.pack(pady=2, padx=10, fill="x")
         
         if self.parent.has_master_password():
-            self.master_entry.configure(state="normal", placeholder_text="Введите новый пароль или оставьте пустым")
-            self.master_entry_confirm.configure(state="normal", placeholder_text="Повторите новый пароль")
+            self.master_entry.configure(state="normal", placeholder_text=t['new_password'])
+            self.master_entry_confirm.configure(state="normal", placeholder_text=t['repeat_new_password'])
         
         self.toggle_master_password()
         
+        self.timeout_label = ctk.CTkLabel(self, text=t['auto_lock'] + ":", font=ctk.CTkFont(size=14, weight="bold"))
+        self.timeout_label.pack(pady=(10, 2))
+        
         timeout_frame = ctk.CTkFrame(self)
-        timeout_frame.pack(pady=10, padx=20, fill="x")
+        timeout_frame.pack(pady=5, padx=20, fill="x")
         
-        ctk.CTkLabel(timeout_frame, text="Автоблокировка:", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(10, 2))
-        
-        timeout_map = {0: "откл", 1: "1 минута", 5: "5 минут", 10: "10 минут", 15: "15 минут", 30: "30 минут"}
+        timeout_values = [t['timeout_off'], t['timeout_1'], t['timeout_5'], t['timeout_10'], t['timeout_15'], t['timeout_30']]
+        timeout_map = {0: t['timeout_off'], 1: t['timeout_1'], 5: t['timeout_5'], 10: t['timeout_10'], 15: t['timeout_15'], 30: t['timeout_30']}
         current_timeout = self.parent.settings.get("auto_lock_timeout", 0)
-        current_timeout_str = timeout_map.get(current_timeout, "откл")
+        current_timeout_str = timeout_map.get(current_timeout, t['timeout_off'])
         
         self.timeout_var = ctk.StringVar(value=current_timeout_str)
         timeout_menu = ctk.CTkOptionMenu(
             timeout_frame,
-            values=["откл", "1 минута", "5 минут", "10 минут", "15 минут", "30 минут"],
+            values=timeout_values,
             variable=self.timeout_var
         )
         self.color_buttons.append(timeout_menu)
@@ -970,56 +1195,84 @@ class SettingsWindow(ctk.CTkToplevel):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=20, fill="x", padx=20)
         
-        apply_btn = ctk.CTkButton(
+        self.apply_btn = ctk.CTkButton(
             btn_frame,
-            text="Применить",
+            text=t['apply'],
             command=self.apply_and_close,
             width=90,
             height=40,
             fg_color="#27ae60",
             hover_color="#1e8449"
         )
-        apply_btn.pack(side="left", padx=5, fill="x", expand=True)
+        self.apply_btn.pack(side="left", padx=5, fill="x", expand=True)
         
-        cancel_btn = ctk.CTkButton(
+        self.cancel_btn = ctk.CTkButton(
             btn_frame,
-            text="Отмена",
+            text=t['cancel'],
             command=self.cancel_changes,
             width=90,
             height=40,
             fg_color="#c0392b",
             hover_color="#a93226"
         )
-        cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
+        self.cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
         
-        reset_btn = ctk.CTkButton(
+        self.reset_btn = ctk.CTkButton(
             btn_frame,
-            text="Сброс",
+            text=t['reset'],
             command=self.reset_settings,
             width=90,
             height=40,
             fg_color="gray",
             hover_color="darkgray"
         )
-        reset_btn.pack(side="left", padx=5, fill="x", expand=True)
-        apply_btn.pack(side="left", padx=5, fill="x", expand=True)
+        self.reset_btn.pack(side="left", padx=5, fill="x", expand=True)
         
         self.change_color(self.parent.settings["color_theme"], apply_to_parent=False)
     
     def cancel_changes(self):
+        t = self.parent.t
         try:
+            theme = self.initial_settings["theme"]
+            if theme == "light":
+                self.theme_var.set("Светлая")
+            elif theme == "dark":
+                self.theme_var.set("Тёмная")
+            else:
+                self.theme_var.set("Системная")
+            
+            color_theme = self.initial_settings["color_theme"]
+            self.color_var.set(color_theme)
+            self.hibp_var.set(self.initial_settings["auto_check_hibp"])
+            self.timeout_var.set(t['timeout_off'])
+            if self.initial_settings.get("auto_lock_timeout", 0) == 1:
+                self.timeout_var.set(t['timeout_1'])
+            elif self.initial_settings.get("auto_lock_timeout", 0) == 5:
+                self.timeout_var.set(t['timeout_5'])
+            elif self.initial_settings.get("auto_lock_timeout", 0) == 10:
+                self.timeout_var.set(t['timeout_10'])
+            elif self.initial_settings.get("auto_lock_timeout", 0) == 15:
+                self.timeout_var.set(t['timeout_15'])
+            elif self.initial_settings.get("auto_lock_timeout", 0) == 30:
+                self.timeout_var.set(t['timeout_30'])
+            
+            lang = self.initial_settings.get("language", "ru")
+            self.lang_var.set(t['russian'] if lang == "ru" else t['english'])
+            
+            self.master_var.set(self.initial_settings.get("has_master", False))
+            self.toggle_master_password()
+            self.change_color(self.initial_settings["color_theme"], apply_to_parent=False)
+            
             self.parent.settings["theme"] = self.initial_settings["theme"]
             self.parent.settings["color_theme"] = self.initial_settings["color_theme"]
             self.parent.settings["auto_check_hibp"] = self.initial_settings["auto_check_hibp"]
-            self.parent.settings["auto_lock_timeout"] = self.initial_settings["auto_lock_timeout"]
+            self.parent.settings["auto_lock_timeout"] = self.initial_settings.get("auto_lock_timeout", 0)
+            self.parent.settings["language"] = self.initial_settings.get("language", "ru")
             
             ctk.set_appearance_mode(self.parent.settings["theme"])
             self.parent.apply_color_theme(self.parent.settings["color_theme"])
         except:
             pass
-        
-        self.parent.settings_window = None
-        self.destroy()
     
     def toggle_master_password(self):
         if self.master_var.get():
@@ -1037,7 +1290,14 @@ class SettingsWindow(ctk.CTkToplevel):
             "Розовый": ("#e91e8a", "#c01774"),
             "Зелёный": ("#27ae60", "#1e8449"),
             "Салатовый": ("#8bc34a", "#689f38"),
-            "Фиолетовый": ("#9b59b6", "#8e44ad")
+            "Фиолетовый": ("#9b59b6", "#8e44ad"),
+            "Blue": ("#3b8ed0", "#1f6aa5"),
+            "Cyan": ("#00a8cc", "#007a99"),
+            "Red": ("#e74c3c", "#c0392b"),
+            "Pink": ("#e91e8a", "#c01774"),
+            "Green": ("#27ae60", "#1e8449"),
+            "Lime": ("#8bc34a", "#689f38"),
+            "Purple": ("#9b59b6", "#8e44ad")
         }
         colors = color_map.get(color_name, color_map["Синий"])
         
@@ -1052,24 +1312,104 @@ class SettingsWindow(ctk.CTkToplevel):
                 pass
         
         if apply_to_parent:
-            self.parent.apply_color_theme(color_name)
+            en_to_ru = {"Blue": "Синий", "Cyan": "Голубой", "Red": "Красный", "Pink": "Розовый", "Green": "Зелёный", "Lime": "Салатовый", "Purple": "Фиолетовый"}
+            ru_color = en_to_ru.get(color_name, color_name)
+            self.parent.apply_color_theme(ru_color)
+    
+    def change_theme(self, theme_label):
+        ru_to_en = {"Светлая": "light", "Тёмная": "dark", "Системная": "system"}
+        theme = ru_to_en.get(theme_label, theme_label)
+        if theme in ["light", "dark", "system"]:
+            ctk.set_appearance_mode(theme)
+    
+    def change_language(self, lang_name):
+        t = self.parent.t
+        lang_map = {t['russian']: "ru", t['english']: "en"}
+        lang_code = lang_map.get(lang_name, "ru")
+        self.parent.settings["language"] = lang_code
+        self.parent.t = self.parent.translations.get(lang_code, self.parent.translations["ru"])
+        
+        self.theme_label.configure(text=t['theme'] + ":")
+        self.color_label.configure(text=t['color_buttons'] + ":")
+        self.options_label.configure(text=t['options'] + ":")
+        self.lang_label.configure(text=t['language'] + ":")
+        self.master_label.configure(text=t['master_password'] + ":")
+        self.timeout_label.configure(text=t['auto_lock'] + ":")
+        
+        self.hibp_cb.configure(text=t['auto_check_hibp'])
+        self.master_cb.configure(text=t['enable_master_password'])
+        
+        ru_colors = ["Синий", "Голубой", "Красный", "Розовый", "Зелёный", "Салатовый", "Фиолетовый"]
+        en_colors = ["Blue", "Cyan", "Red", "Pink", "Green", "Lime", "Purple"]
+        current_color = self.color_var.get()
+        
+        if lang_code == "en":
+            color_map = {"Синий": "Blue", "Голубой": "Cyan", "Красный": "Red", "Розовый": "Pink", "Зелёный": "Green", "Салатовый": "Lime", "Фиолетовый": "Purple"}
+            new_color = color_map.get(current_color, "Blue")
+            self.color_menu.configure(values=en_colors)
+            self.color_var.set(new_color)
+            
+            ru_themes = ["Светлая", "Тёмная", "Системная"]
+            en_themes = ["Light", "Dark", "System"]
+            self.theme_menu.configure(values=en_themes)
+            current_theme = self.theme_var.get()
+            ru_to_en = {"Светлая": "Light", "Тёмная": "Dark", "Системная": "System"}
+            self.theme_var.set(ru_to_en.get(current_theme, "Light"))
+        else:
+            color_map = {"Blue": "Синий", "Cyan": "Голубой", "Red": "Красный", "Pink": "Розовый", "Green": "Зелёный", "Lime": "Салатовый", "Purple": "Фиолетовый"}
+            new_color = color_map.get(current_color, "Синий")
+            self.color_menu.configure(values=ru_colors)
+            self.color_var.set(new_color)
+            
+            ru_themes = ["Светлая", "Тёмная", "Системная"]
+            en_themes = ["Light", "Dark", "System"]
+            self.theme_menu.configure(values=ru_themes)
+            current_theme = self.theme_var.get()
+            en_to_ru = {"Light": "Светлая", "Dark": "Тёмная", "System": "Системная"}
+            self.theme_var.set(en_to_ru.get(current_theme, "Светлая"))
+        
+        lang_values = [t['russian'], t['english']]
+        current_lang = t['russian'] if lang_code == "ru" else t['english']
+        self.lang_var.set(current_lang)
+        
+        timeout_values = [t['timeout_off'], t['timeout_1'], t['timeout_5'], t['timeout_10'], t['timeout_15'], t['timeout_30']]
+        self.timeout_var.set(timeout_values[0])
+        
+        self.apply_btn.configure(text=t['apply'])
+        self.cancel_btn.configure(text=t['cancel'])
+        self.reset_btn.configure(text=t['reset'])
+        
+        self.master_entry.configure(placeholder_text=t['create_password'])
+        self.master_entry_confirm.configure(placeholder_text=t['repeat_password'])
+        if self.parent.has_master_password():
+            self.master_entry.configure(placeholder_text=t['new_password'])
+            self.master_entry_confirm.configure(placeholder_text=t['repeat_new_password'])
     
     def reset_settings(self):
+        t = self.parent.t
         DEFAULT_THEME = "light"
         DEFAULT_COLOR = "Синий"
         
-        self.theme_var.set(DEFAULT_THEME)
+        self.theme_var.set("Светлая")
         self.color_var.set(DEFAULT_COLOR)
         self.hibp_var.set(True)
+        self.master_var.set(False)
+        self.timeout_var.set(t['timeout_off'])
+        self.lang_var.set(t['russian'])
+        self.toggle_master_password()
         self.change_color(DEFAULT_COLOR, apply_to_parent=False)
         
         self.parent.settings["theme"] = DEFAULT_THEME
         self.parent.settings["color_theme"] = DEFAULT_COLOR
         self.parent.settings["auto_check_hibp"] = True
+        self.parent.settings["auto_lock_timeout"] = 0
+        self.parent.settings["language"] = "ru"
         self.parent.settings["use_upper"] = True
         self.parent.settings["use_lower"] = True
         self.parent.settings["use_digits"] = True
         self.parent.settings["use_special"] = True
+        
+        self.parent.save_master_password("")
         
         ctk.set_appearance_mode(DEFAULT_THEME)
         self.parent.apply_color_theme(DEFAULT_COLOR)
@@ -1081,20 +1421,38 @@ class SettingsWindow(ctk.CTkToplevel):
         self.parent.custom_password_var.set(False)
         self.parent.toggle_custom_password()
         
+        self.parent.t = self.parent.translations["ru"]
+        self.parent.refresh_ui_text()
         self.parent.save_settings()
         self.parent.settings_window = None
         self.destroy()
     
     def apply_and_close(self):
+        t = self.parent.t
         color_name = self.color_var.get()
         
-        self.parent.settings["theme"] = self.theme_var.get()
-        self.parent.settings["color_theme"] = color_name
+        ru_to_en_theme = {"Светлая": "light", "Тёмная": "dark", "Системная": "system"}
+        theme_value = self.theme_var.get()
+        theme = ru_to_en_theme.get(theme_value, theme_value)
+        
+        self.parent.settings["theme"] = theme
+        
+        en_to_ru_color = {"Blue": "Синий", "Cyan": "Голубой", "Red": "Красный", "Pink": "Розовый", "Green": "Зелёный", "Lime": "Салатовый", "Purple": "Фиолетовый"}
+        color = en_to_ru_color.get(color_name, color_name)
+        self.parent.settings["color_theme"] = color
         self.parent.settings["auto_check_hibp"] = self.hibp_var.get()
         
-        timeout_map = {"откл": 0, "1 минута": 1, "5 минут": 5, "10 минут": 10, "15 минут": 15, "30 минут": 30}
-        timeout_val = timeout_map.get(self.timeout_var.get(), 5)
+        lang_map = {t['russian']: "ru", t['english']: "en"}
+        lang_code = lang_map.get(self.lang_var.get(), "ru")
+        self.parent.settings["language"] = lang_code
+        self.parent.t = self.parent.translations.get(lang_code, self.parent.translations["ru"])
+        self.parent.refresh_ui_text()
+        
+        timeout_map = {t['timeout_off']: 0, t['timeout_1']: 1, t['timeout_5']: 5, t['timeout_10']: 10, t['timeout_15']: 15, t['timeout_30']: 30}
+        timeout_val = timeout_map.get(self.timeout_var.get(), 0)
         self.parent.settings["auto_lock_timeout"] = timeout_val
+        
+        ctk.set_appearance_mode(theme)
         
         # Handle master password
         if self.master_var.get():
@@ -1102,7 +1460,7 @@ class SettingsWindow(ctk.CTkToplevel):
             confirm_pass = self.master_entry_confirm.get()
             if new_pass or self.parent.has_master_password():
                 if new_pass != confirm_pass:
-                    ctk.CTkMessagebox(title="Ошибка", message="Пароли не совпадают!", icon="cancel")
+                    ctk.CTkMessagebox(title=t['error'], message=t['passwords_dont_match'], icon="cancel")
                     return
                 if new_pass:
                     self.parent.save_master_password(new_pass)
