@@ -23,7 +23,7 @@ os.makedirs(APP_DIR, exist_ok=True)
 CONFIG_FILE = os.path.join(APP_DIR, "settings.json")
 HISTORY_FILE = os.path.join(APP_DIR, "history.json")
 MASTER_FILE = os.path.join(APP_DIR, "master.json")
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 class PasswordGeneratorApp(ctk.CTk):
     def __init__(self):
@@ -106,8 +106,8 @@ class PasswordGeneratorApp(ctk.CTk):
             login_win.destroy()
             self.destroy()
         
-        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100).pack(pady=10)
-        ctk.CTkButton(login_win, text=t['exit'], command=exit_app, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100, border_width=2, border_color="#3b8ed0").pack(pady=10)
+        ctk.CTkButton(login_win, text=t['exit'], command=exit_app, fg_color="red", hover_color="darkred", border_color="darkred", width=100).pack(pady=5)
         
         password_entry.focus()
         login_win.bind("<Return>", lambda e: try_login())
@@ -376,8 +376,8 @@ class PasswordGeneratorApp(ctk.CTk):
             if self.is_locked:
                 self.destroy()
         
-        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100).pack(pady=10)
-        ctk.CTkButton(login_win, text=t['exit'], command=cancel_login, fg_color="red", hover_color="darkred", width=100).pack(pady=5)
+        ctk.CTkButton(login_win, text=t['login'], command=try_login, width=100, border_width=2, border_color="#3b8ed0").pack(pady=10)
+        ctk.CTkButton(login_win, text=t['exit'], command=cancel_login, fg_color="red", hover_color="darkred", border_color="darkred", width=100).pack(pady=5)
         
         password_entry.focus()
         login_win.bind("<Return>", lambda e: try_login())
@@ -411,6 +411,26 @@ class PasswordGeneratorApp(ctk.CTk):
         
         for cb in [self.uppercase_cb, self.lowercase_cb, self.digits_cb, self.special_cb, self.custom_password_cb]:
             cb.configure(fg_color=colors[0], hover_color=colors[1])
+        
+        if hasattr(self, 'settings_btn'):
+            self.settings_btn.configure(border_color=colors[0])
+        if hasattr(self, 'history_btn'):
+            self.history_btn.configure(border_color=colors[0])
+    
+    def get_btnborder_color(self):
+        color_map = {
+            "Синий": "#3b8ed0",
+            "Голубой": "#00a8cc",
+            "Красный": "#e74c3c",
+            "Розовый": "#e91e8a",
+            "Зелёный": "#27ae60",
+            "Салатовый": "#8bc34a",
+            "Фиолетовый": "#9b59b6",
+            "blue": "#3b8ed0",
+            "green": "#27ae60",
+            "dark-blue": "#3b8ed0"
+        }
+        return color_map.get(self.settings.get("color_theme", "Синий"), "#3b8ed0")
     
     def load_history(self):
         if os.path.exists(HISTORY_FILE):
@@ -452,8 +472,10 @@ class PasswordGeneratorApp(ctk.CTk):
             top_frame,
             text=self.t['settings'],
             width=90,
-            height=30,
+            height=32,
             font=ctk.CTkFont(size=12),
+            border_width=2,
+            border_color=self.get_btnborder_color(),
             command=self.open_settings_window
         )
         self.settings_btn.pack(side="left", padx=2)
@@ -462,8 +484,10 @@ class PasswordGeneratorApp(ctk.CTk):
             top_frame,
             text=self.t['history'],
             width=80,
-            height=30,
+            height=32,
             font=ctk.CTkFont(size=12),
+            border_width=2,
+            border_color=self.get_btnborder_color(),
             command=self.open_history_window
         )
         self.history_btn.pack(side="left", padx=2)
@@ -488,6 +512,8 @@ class PasswordGeneratorApp(ctk.CTk):
             text=self.t['generate'],
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
+            border_width=3,
+            border_color=self.get_btnborder_color(),
             command=self.generate_password
         )
         self.generate_btn.pack(pady=5, fill="x")
@@ -497,6 +523,8 @@ class PasswordGeneratorApp(ctk.CTk):
             text=self.t['copy'],
             font=ctk.CTkFont(size=14),
             height=40,
+            border_width=2,
+            border_color=self.get_btnborder_color(),
             command=self.copy_password,
             state="disabled"
         )
@@ -900,7 +928,9 @@ class PasswordGeneratorApp(ctk.CTk):
             width=120,
             height=35,
             fg_color=colors[0],
-            hover_color=colors[1]
+            hover_color=colors[1],
+            border_width=2,
+            border_color=colors[1]
         ).pack(pady=10)
         
         password_entry.focus()
@@ -973,14 +1003,18 @@ class HistoryWindow(ctk.CTkToplevel):
             text=t['clear_history'],
             command=self.clear_history,
             fg_color="red",
-            hover_color="darkred"
+            hover_color="darkred",
+            border_width=2,
+            border_color="darkred"
         )
         clear_btn.pack(side="left", padx=5)
         
         export_btn = ctk.CTkButton(
             btn_frame,
             text=t['export_history'],
-            command=self.export_history
+            command=self.export_history,
+            border_width=2,
+            border_color="#3b8ed0"
         )
         export_btn.pack(side="left", padx=5)
         
@@ -1241,7 +1275,9 @@ class SettingsWindow(ctk.CTkToplevel):
             width=90,
             height=40,
             fg_color="#27ae60",
-            hover_color="#1e8449"
+            hover_color="#1e8449",
+            border_width=2,
+            border_color="#1e8449"
         )
         self.apply_btn.pack(side="left", padx=5, fill="x", expand=True)
         
@@ -1252,7 +1288,9 @@ class SettingsWindow(ctk.CTkToplevel):
             width=90,
             height=40,
             fg_color="#c0392b",
-            hover_color="#a93226"
+            hover_color="#a93226",
+            border_width=2,
+            border_color="#a93226"
         )
         self.cancel_btn.pack(side="left", padx=5, fill="x", expand=True)
         
