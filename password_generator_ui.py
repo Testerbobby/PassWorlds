@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 import secrets
 import string
 import pyperclip
@@ -7,14 +8,22 @@ import json
 import os
 import webbrowser
 import threading
+import sys
 from datetime import datetime
+
+def get_icon_path():
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, "passworlds_icon.png")
 
 APP_DIR = os.path.join(os.path.expanduser("~"), ".passworlds")
 os.makedirs(APP_DIR, exist_ok=True)
 CONFIG_FILE = os.path.join(APP_DIR, "settings.json")
 HISTORY_FILE = os.path.join(APP_DIR, "history.json")
 MASTER_FILE = os.path.join(APP_DIR, "master.json")
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 class PasswordGeneratorApp(ctk.CTk):
     def __init__(self):
@@ -23,6 +32,11 @@ class PasswordGeneratorApp(ctk.CTk):
         self.title(f"PassWorlds {VERSION}")
         self.geometry("550x750")
         self.resizable(False, False)
+        
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            self.iconphoto(False, icon)
         
         self.password = ""
         self.password_history = []
@@ -68,6 +82,11 @@ class PasswordGeneratorApp(ctk.CTk):
         login_win.geometry("350x200")
         login_win.resizable(False, False)
         login_win.transient(self)
+        
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            login_win.iconphoto(False, icon)
         
         ctk.CTkLabel(login_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
@@ -332,6 +351,11 @@ class PasswordGeneratorApp(ctk.CTk):
         login_win.geometry("350x200")
         login_win.resizable(False, False)
         login_win.transient(self)
+        
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            login_win.iconphoto(False, icon)
         
         ctk.CTkLabel(login_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
@@ -851,6 +875,11 @@ class PasswordGeneratorApp(ctk.CTk):
         auth_win.resizable(False, False)
         auth_win.transient(self)
         
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            auth_win.iconphoto(False, icon)
+        
         ctk.CTkLabel(auth_win, text=t['enter_master_password'], font=ctk.CTkFont(size=14, weight="bold")).pack(pady=20)
         
         password_entry = ctk.CTkEntry(auth_win, show="*", width=200, font=ctk.CTkFont(size=14))
@@ -924,6 +953,11 @@ class HistoryWindow(ctk.CTkToplevel):
         self.title(t['history_window'])
         self.geometry("500x400")
         self.resizable(True, True)
+        
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            self.iconphoto(False, icon)
         
         self.history = history
         self.t = t
@@ -1015,6 +1049,11 @@ class SettingsWindow(ctk.CTkToplevel):
         self.title(t['settings_window'])
         self.geometry("380x720")
         self.resizable(False, False)
+        
+        icon_path = get_icon_path()
+        if os.path.exists(icon_path):
+            icon = tk.PhotoImage(file=icon_path)
+            self.iconphoto(False, icon)
         
         self.parent = parent
         self.color_buttons = []
@@ -1471,7 +1510,7 @@ class SettingsWindow(ctk.CTkToplevel):
                 self.parent.save_master_password("")
         
         ctk.set_appearance_mode(self.parent.settings["theme"])
-        self.parent.apply_color_theme(color_name)
+        self.parent.apply_color_theme(self.parent.settings["color_theme"])
         self.parent.save_settings()
         self.parent.settings_window = None
         self.destroy()
